@@ -1,0 +1,207 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: water
+  m_Shader: {fileID: 4800000, guid: 6562ed1722964fc4fa4eba1d756e19b7, type: 3}
+  m_ShaderKeywords: _LIGHTMAPPING_REALTIME _NORMALMAP _SPECGLOSSMAP
+  m_CustomRenderQueue: -1
+  m_SavedProperties:
+    serializedVersion: 2
+    m_TexEnvs:
+      data:
+        first:
+          name: _MainTex
+        second:
+          m_Texture: {fileID: 2800000, guid: 53356ef0674fd514aa262fd51db82e01, type: 3}
+          m_Scale: {x: 10, y: 10}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _BumpMap
+        second:
+          m_Texture: {fileID: 2800000, guid: 235d11353421b8a4fa70978941e799a1, type: 3}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _EmissionMap
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 10, y: 10}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _DetailNormalMap
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _ParallaxMap
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _OcclusionMap
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _DetailMask
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _DetailAlbedoMap
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _MetallicGlossMap
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _SpecGlossMap
+        second:
+          m_Texture: {fileID: 2800000, guid: 89eb6b260409d594c8e7754f549420e0, type: 3}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _Refraction
+        second:
+          m_Texture: {fileID: 2800000, guid: b32385c1407237843b159498df709642, type: 3}
+          m_Scale: {x: 15, y: 15}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _water
+        second:
+          m_Texture: {fileID: 2800000, guid: 53356ef0674fd514aa262fd51db82e01, type: 3}
+          m_Scale: {x: 15, y: 15}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _water_2
+        second:
+          m_Texture: {fileID: 2800000, guid: 53356ef0674fd514aa262fd51db82e01, type: 3}
+          m_Scale: {x: 15, y: 15}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _Refraction_2
+        second:
+          m_Texture: {fileID: 2800000, guid: b32385c1407237843b159498df709642, type: 3}
+          m_Scale: {x: 15, y: 15}
+          m_Offset: {x: 0, y: 0}
+    m_Floats:
+      data:
+        first:
+          name: _Cutoff
+        second: .263000011
+      data:
+        first:
+          name: _Lightmapping
+        second: 1
+      data:
+        first:
+          name: _SrcBlend
+        second: 1
+      data:
+        first:
+          name: _DstBlend
+        second: 0
+      data:
+        first:
+          name: _Parallax
+        second: .0199999996
+      data:
+        first:
+          name: _ZWrite
+        second: 1
+      data:
+        first:
+          name: _Glossiness
+        second: .35800001
+      data:
+        first:
+          name: _BumpScale
+        second: 1.39999998
+      data:
+        first:
+          name: _OcclusionStrength
+        second: 1
+      data:
+        first:
+          name: _DetailNormalMapScale
+        second: 1
+      data:
+        first:
+          name: _UVSec
+        second: 0
+      data:
+        first:
+          name: _EmissionScaleUI
+        second: 0
+      data:
+        first:
+          name: _Mode
+        second: 0
+      data:
+        first:
+          name: _Metallic
+        second: .0419999994
+      data:
+        first:
+          name: _RefractionIntensity
+        second: .142000005
+      data:
+        first:
+          name: _alpha
+        second: .414000005
+      data:
+        first:
+          name: _specular
+        second: 3.02999997
+      data:
+        first:
+          name: _gloss
+        second: .776000023
+    m_Colors:
+      data:
+        first:
+          name: _EmissionColor
+        second: {r: 0, g: 0, b: 0, a: 0}
+      data:
+        first:
+          name: _Color
+        second: {r: .984313726, g: .984313726, b: .984313726, a: .501960814}
+      data:
+        first:
+          name: _SpecColor
+        second: {r: .200000003, g: .200000003, b: .200000003, a: 1}
+      data:
+        first:
+          name: _EmissionColorUI
+        second: {r: 1, g: 1, b: 1, a: 1}
+      data:
+        first:
+          name: _color
+        second: {r: .522058845, g: .604462504, b: 1, a: 1}

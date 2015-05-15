@@ -1,0 +1,152 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &100000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 400000}
+  - 114: {fileID: 11400000}
+  m_Layer: 0
+  m_Name: _TerrainManager 1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &400000
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 100000}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 31.3380146, y: -13.8803635, z: 28.6778679}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9beb87af2af9764eb79fe73f6bbaeb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  terrainSeed: 0
+  randomizeSeed: 0
+  terrainWidth: 2048
+  terrainHeight: 2048
+  pixelsPerUnit: 32
+  resolutionHeight: 2
+  altitudes: .159999996
+  altitudeVariation: 1
+  grain: .699999988
+  chunkSize: 512
+  chunkResolution: 32
+  chunkCollisionResolution: 16
+  chunkPrefab: {fileID: 100000, guid: c7e9e50f0cc102741bedf5c4fe794eb0, type: 2}
+  hexagonolize: 1
+  showPathfindingNodes: 0
+  showCurrentPathNodes: 0
+  generatePathObjects: 0
+  hexagonSmoothness:
+    serializedVersion: 2
+    m_Curve:
+    - time: .00398992328
+      value: .101804912
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    - time: .56388849
+      value: .0972911939
+      inSlope: .0219334941
+      outSlope: .0219334941
+      tangentMode: 0
+    - time: .634213269
+      value: .238447934
+      inSlope: 1.0978651
+      outSlope: 1.0978651
+      tangentMode: 0
+    - time: .997517586
+      value: .506184816
+      inSlope: .409078062
+      outSlope: .409078062
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+  hexProperties:
+    side: 50
+    height: 0
+    width: 0
+    tileR: 0
+    tileH: 0
+  terrainAltitudeColors:
+    key0:
+      serializedVersion: 2
+      rgba: 4285676570
+    key1:
+      serializedVersion: 2
+      rgba: 4284341708
+    key2:
+      serializedVersion: 2
+      rgba: 4281118845
+    key3:
+      serializedVersion: 2
+      rgba: 2023509
+    key4:
+      serializedVersion: 2
+      rgba: 1658144
+    key5:
+      serializedVersion: 2
+      rgba: 1657376
+    key6:
+      serializedVersion: 2
+      rgba: 2500134
+    key7:
+      serializedVersion: 2
+      rgba: 13092807
+    ctime0: 11736
+    ctime1: 12263
+    ctime2: 23339
+    ctime3: 36262
+    ctime4: 44701
+    ctime5: 54854
+    ctime6: 62634
+    ctime7: 64612
+    atime0: 0
+    atime1: 65535
+    atime2: 65535
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_NumColorKeys: 8
+    m_NumAlphaKeys: 2
+  heightMap: {fileID: 0}
+  tempetureMap: {fileID: 0}
+  moistureMap: {fileID: 0}
+  biomMap: {fileID: 0}
+  terrainTexture: {fileID: 0}
+  hoverHexAraray: {x: 0, y: 0}
+  hoverHexCube: {x: 0, y: 0, z: 0}
+  node: {fileID: 100000, guid: 39f532da486087c46b266bf3e98d099d, type: 2}
+  heightLightHex: {fileID: 0}
+--- !u!1001 &100100000
+Prefab:
+  m_ObjectHideFlags: 1
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications: []
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 0}
+  m_RootGameObject: {fileID: 100000}
+  m_IsPrefabParent: 1

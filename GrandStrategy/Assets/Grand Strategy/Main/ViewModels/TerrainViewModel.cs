@@ -172,6 +172,7 @@ public partial class TerrainViewModel : TerrainViewModelBase {
             }   
         }
 
+        Debug.Log(seaLevelHexes.Count);
         // Go through all the water tiles in the map
         List<Hex> scannedHexes = new List<Hex>();
         while (seaLevelHexes.Count > 0)
@@ -180,7 +181,7 @@ public partial class TerrainViewModel : TerrainViewModelBase {
             scannedHexes.Add(seaLevelHexes[0]);
 
             // Search outwards from the water tile to find ALL other water tiles around it
-            Hex.SearchNeighbors(scannedHexes[0], p_hex => p_hex.Elevation == 1, scannedHexes);
+            Hex.SearchNeighbors(scannedHexes[0], p_hex => p_hex.Elevation <= SeaLevel, scannedHexes);
 
 
             // water pools
@@ -217,7 +218,7 @@ public partial class TerrainViewModel : TerrainViewModelBase {
         //}
     }
 
-    public void GenerateLake(List<Hex >hexes)
+    public void GenerateLake(List<Hex> hexes)
     {
         for (int i = 0; i < hexes.Count; i++)
         {
@@ -297,17 +298,99 @@ public partial class TerrainViewModel : TerrainViewModelBase {
 
     }
 
+    //public void CalculateHumidity()
+    //{
+    //    Timer.Start("Calculating humidity");
+    //
+    //    for (int i = 0; i < terrainManager.waterTiles.Count; i++)
+    //    {
+    //        Hex.HumiditySpread(terrainManager.waterTiles[i], 3, 50, terrainManager.HumidySpreadDecrease, terrainManager.waterTiles);
+    //    }
+    //    // loop through rivers
+    //    for (int i = 0; i < terrainManager.riverTiles.Count; i++)
+    //    {
+    //        Hex.HumiditySpread(terrainManager.riverTiles[i], 15, 30, 3, terrainManager.riverTiles);
+    //    }
+    //
+    //    int randomHumiditySpread = 10;
+    //    int humMin = 5;
+    //    int humMax = 30;
+    //    int rangeMin = 4;
+    //    int rangeMax = 30;
+    //
+    //
+    //
+    //    for (int i = 0; i < randomHumiditySpread; i++)
+    //    {
+    //        Hex.HumiditySpread(terrainManager.GetRandomLandTile(), UnityEngine.Random.Range(rangeMin, rangeMax), UnityEngine.Random.Range(humMin, humMax), 3, terrainManager.riverTiles);
+    //    }
+    //
+    //
+    //    Timer.End();
+    //}
+    //
+    //public void CalculateTemperature(TerrainManagerViewModel terrainManager)
+    //{
+    //    for (int x = 0; x < terrainManager.TerrainWidth; x++)
+    //    {
+    //        for (int y = 0; y < terrainManager.TerrainHeight; y++)
+    //        {
+    //            terrainManager.hexGrid[x, y].Temperature -= (int)terrainManager.HumidityTemperature.Evaluate(terrainManager.hexGrid[x, y].Humidity);
+    //            terrainManager.hexGrid[x, y].Temperature -= (int)terrainManager.HeightTemperature.Evaluate(terrainManager.hexGrid[x, y].height);
+    //        }
+    //    }
+    //}
+    //
+    //public void CalculateBiomes(TerrainManagerViewModel terrainManager)
+    //{
+    //    Timer.Start("Calculating biomeList");
+    //
+    //    for (int x = 0; x < terrainManager.TerrainWidth; x++)
+    //    {
+    //        for (int y = 0; y < terrainManager.TerrainHeight; y++)
+    //        {
+    //            if (terrainManager.hexGrid[x, y].terrainType == TerrainType.None)
+    //                terrainManager.hexGrid[x, y].terrainType = TerrainType.Grassland;
+    //        }
+    //    }
+    //
+    //    Timer.End();
+    //}
+
     public void CalculateHumidity()
     {
 
     }
+
     public void CalculateTemperature()
     {
+        int temperature = 0;
+        for (int x = 0; x < Width; x++)
+        {
+            for (int y = 0; y < Height; y++)
+            {
+                temperature = (int)LatitudeTempCurve.Evaluate(Mathf.Abs((Height / 2f) - y) / Height);
 
+                Hexes[x, y].Temperature = temperature;
+                Hexes[x, y].Humidity = 15;
+            }
+        }
     }
+
     public void CalculateBiomes()
     {
+        for (int x = 0; x < Width; x++)
+        {
+            for (int y = 0; y < Height; y++)
+            {
+                // Water hexes are already defind
+                if (Hexes[x, y].WaterHex())
+                    continue;
 
+                Hexes[x, y].TerrainType = TerrainTypesList.CalculateType(Hexes[x, y].Temperature - (int)AltitudeTempCurve.Evaluate(Hexes[x, y].Elevation / Elevations),
+                                                                         Hexes[x, y].Humidity);
+            }
+        }
     }
 
 

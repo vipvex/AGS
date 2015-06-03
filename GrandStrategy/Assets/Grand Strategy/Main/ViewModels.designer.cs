@@ -44,7 +44,7 @@ public partial class TerrainViewModelBase : ViewModel {
     
     private P<Int32> _MountainSpacingProperty;
     
-    private P<ChunkViewModel[,]> _ChunksProperty;
+    private P<String> _ChunksProperty;
     
     private P<Hex[,]> _HexesProperty;
     
@@ -81,6 +81,12 @@ public partial class TerrainViewModelBase : ViewModel {
     private P<Int32> _ChunkHexCountYProperty;
     
     private P<Vector3> _CameraPosProperty;
+    
+    private P<AnimationCurve> _LatitudeTempCurveProperty;
+    
+    private P<TerrainTypesList> _TerrainTypesListProperty;
+    
+    private P<AnimationCurve> _AltitudeTempCurveProperty;
     
     private Signal<GenerateTerrainCommand> _GenerateTerrain;
     
@@ -209,7 +215,7 @@ public partial class TerrainViewModelBase : ViewModel {
         }
     }
     
-    public virtual P<ChunkViewModel[,]> ChunksProperty {
+    public virtual P<String> ChunksProperty {
         get {
             return _ChunksProperty;
         }
@@ -380,6 +386,33 @@ public partial class TerrainViewModelBase : ViewModel {
         }
     }
     
+    public virtual P<AnimationCurve> LatitudeTempCurveProperty {
+        get {
+            return _LatitudeTempCurveProperty;
+        }
+        set {
+            _LatitudeTempCurveProperty = value;
+        }
+    }
+    
+    public virtual P<TerrainTypesList> TerrainTypesListProperty {
+        get {
+            return _TerrainTypesListProperty;
+        }
+        set {
+            _TerrainTypesListProperty = value;
+        }
+    }
+    
+    public virtual P<AnimationCurve> AltitudeTempCurveProperty {
+        get {
+            return _AltitudeTempCurveProperty;
+        }
+        set {
+            _AltitudeTempCurveProperty = value;
+        }
+    }
+    
     public virtual Int32 Width {
         get {
             return WidthProperty.Value;
@@ -497,7 +530,7 @@ public partial class TerrainViewModelBase : ViewModel {
         }
     }
     
-    public virtual ChunkViewModel[,] Chunks {
+    public virtual String Chunks {
         get {
             return ChunksProperty.Value;
         }
@@ -668,6 +701,33 @@ public partial class TerrainViewModelBase : ViewModel {
         }
     }
     
+    public virtual AnimationCurve LatitudeTempCurve {
+        get {
+            return LatitudeTempCurveProperty.Value;
+        }
+        set {
+            LatitudeTempCurveProperty.Value = value;
+        }
+    }
+    
+    public virtual TerrainTypesList TerrainTypesList {
+        get {
+            return TerrainTypesListProperty.Value;
+        }
+        set {
+            TerrainTypesListProperty.Value = value;
+        }
+    }
+    
+    public virtual AnimationCurve AltitudeTempCurve {
+        get {
+            return AltitudeTempCurveProperty.Value;
+        }
+        set {
+            AltitudeTempCurveProperty.Value = value;
+        }
+    }
+    
     public virtual Signal<GenerateTerrainCommand> GenerateTerrain {
         get {
             return _GenerateTerrain;
@@ -713,7 +773,7 @@ public partial class TerrainViewModelBase : ViewModel {
         _MountainRangeFrequencyProperty = new P<Int32>(this, "MountainRangeFrequency");
         _MountainRangeScaleProperty = new P<Int32>(this, "MountainRangeScale");
         _MountainSpacingProperty = new P<Int32>(this, "MountainSpacing");
-        _ChunksProperty = new P<ChunkViewModel[,]>(this, "Chunks");
+        _ChunksProperty = new P<String>(this, "Chunks");
         _HexesProperty = new P<Hex[,]>(this, "Hexes");
         _ChunkSizeProperty = new P<Int32>(this, "ChunkSize");
         _HexSideLengthProperty = new P<Int32>(this, "HexSideLength");
@@ -732,6 +792,9 @@ public partial class TerrainViewModelBase : ViewModel {
         _ChunkHexCountXProperty = new P<Int32>(this, "ChunkHexCountX");
         _ChunkHexCountYProperty = new P<Int32>(this, "ChunkHexCountY");
         _CameraPosProperty = new P<Vector3>(this, "CameraPos");
+        _LatitudeTempCurveProperty = new P<AnimationCurve>(this, "LatitudeTempCurve");
+        _TerrainTypesListProperty = new P<TerrainTypesList>(this, "TerrainTypesList");
+        _AltitudeTempCurveProperty = new P<AnimationCurve>(this, "AltitudeTempCurve");
     }
     
     public override void Read(ISerializerStream stream) {
@@ -749,6 +812,7 @@ public partial class TerrainViewModelBase : ViewModel {
         this.MountainRangeFrequency = stream.DeserializeInt("MountainRangeFrequency");;
         this.MountainRangeScale = stream.DeserializeInt("MountainRangeScale");;
         this.MountainSpacing = stream.DeserializeInt("MountainSpacing");;
+        this.Chunks = stream.DeserializeString("Chunks");;
         this.ChunkSize = stream.DeserializeInt("ChunkSize");;
         this.HexSideLength = stream.DeserializeInt("HexSideLength");;
         this.PixelsPerUnit = stream.DeserializeInt("PixelsPerUnit");;
@@ -781,6 +845,7 @@ public partial class TerrainViewModelBase : ViewModel {
         stream.SerializeInt("MountainRangeFrequency", this.MountainRangeFrequency);
         stream.SerializeInt("MountainRangeScale", this.MountainRangeScale);
         stream.SerializeInt("MountainSpacing", this.MountainSpacing);
+        stream.SerializeString("Chunks", this.Chunks);
         stream.SerializeInt("ChunkSize", this.ChunkSize);
         stream.SerializeInt("HexSideLength", this.HexSideLength);
         stream.SerializeInt("PixelsPerUnit", this.PixelsPerUnit);
@@ -871,6 +936,12 @@ public partial class TerrainViewModelBase : ViewModel {
         list.Add(new ViewModelPropertyInfo(_ChunkHexCountYProperty, false, false, false, false));
         // PropertiesChildItem
         list.Add(new ViewModelPropertyInfo(_CameraPosProperty, false, false, false, false));
+        // PropertiesChildItem
+        list.Add(new ViewModelPropertyInfo(_LatitudeTempCurveProperty, false, false, false, false));
+        // PropertiesChildItem
+        list.Add(new ViewModelPropertyInfo(_TerrainTypesListProperty, false, false, false, false));
+        // PropertiesChildItem
+        list.Add(new ViewModelPropertyInfo(_AltitudeTempCurveProperty, false, false, false, false));
     }
 }
 
@@ -1283,6 +1354,63 @@ public partial class WorldViewModelBase : ViewModel {
 public partial class WorldViewModel {
     
     public WorldViewModel(IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+}
+
+public partial class PlayerViewModelBase : ViewModel {
+    
+    private P<Hex> _SelectedHexProperty;
+    
+    public PlayerViewModelBase(IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+    
+    public virtual P<Hex> SelectedHexProperty {
+        get {
+            return _SelectedHexProperty;
+        }
+        set {
+            _SelectedHexProperty = value;
+        }
+    }
+    
+    public virtual Hex SelectedHex {
+        get {
+            return SelectedHexProperty.Value;
+        }
+        set {
+            SelectedHexProperty.Value = value;
+        }
+    }
+    
+    public override void Bind() {
+        base.Bind();
+        _SelectedHexProperty = new P<Hex>(this, "SelectedHex");
+    }
+    
+    public override void Read(ISerializerStream stream) {
+        base.Read(stream);
+    }
+    
+    public override void Write(ISerializerStream stream) {
+        base.Write(stream);
+    }
+    
+    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+        base.FillCommands(list);
+    }
+    
+    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+        base.FillProperties(list);
+        // PropertiesChildItem
+        list.Add(new ViewModelPropertyInfo(_SelectedHexProperty, false, false, false, false));
+    }
+}
+
+public partial class PlayerViewModel {
+    
+    public PlayerViewModel(IEventAggregator aggregator) : 
             base(aggregator) {
     }
 }

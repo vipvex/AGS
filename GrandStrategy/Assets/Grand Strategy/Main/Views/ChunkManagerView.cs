@@ -55,6 +55,8 @@ public class ChunkManagerView : ChunkManagerViewBase
     {
         base.Start();
         SetupRenderingSettings();
+
+        //Debug.Log(new Rect(40, 40, 50, 50).Contains(new Vector2(25, 25)));
     }
 
     private void SetupChunkSettings()
@@ -299,7 +301,7 @@ public class ChunkManagerView : ChunkManagerViewBase
         substance.RebuildTexturesImmediately();
 
         // Retrieve the processed heightmap procedural texture
-        ProceduralTexture substanceTexture = substance.GetGeneratedTexture("Terrain_heightmap");
+        ProceduralTexture substanceTexture = substance.GetGeneratedTexture("terrain_heightmap");
 
         // Convert it to a readable Texture2D format
         ChunkHeightmaps[x, y] = new Texture2D(substanceTexture.width, substanceTexture.height, TextureFormat.ARGB32, false);
@@ -432,8 +434,29 @@ public class ChunkManagerView : ChunkManagerViewBase
                 posX = Mathf.RoundToInt(x * 2 * HexProperties.tileR + (y % 2 == 0 ? 0 : 1) * HexProperties.tileR + HexProperties.tileR) - chunkTextureOffsetX;
                 posY = ChunkSize - (Mathf.RoundToInt(y * (HexProperties.tileH + HexProperties.side) + HexProperties.side) - chunkTextureOffsetY);
 
-                GL.Color(new Color((float)Terrain.Hexes[x, y].Elevation / Terrain.Elevations, (float)Terrain.Hexes[x, y].Elevation / Terrain.Elevations, (float)Terrain.Hexes[x, y].Elevation / Terrain.Elevations));
-       
+                //GL.Color(new Color((float)Terrain.Hexes[x, y].Elevation / Terrain.Elevations, (float)Terrain.Hexes[x, y].Elevation / Terrain.Elevations, (float)Terrain.Hexes[x, y].Elevation / Terrain.Elevations));
+                //GL.Color(Color.blue);
+                //if (TerrainManager.hexGrid[x, y].height == TerrainManager.Altitudes)
+                //{
+                //    GL.Color(Color.white);
+                //    TerrainManager.hexGrid[x, y].terrainType = TerrainType.Arctic;
+                //    break;
+                //}
+
+                //for (int i = 0; i < biomes.Length; i++)
+                //{
+                //    if (TerrainManager.hexGrid[x, y].Temperature >= biomes[i].minTemp && TerrainManager.hexGrid[x, y].Humidity >= biomes[i].minHum)
+                //    {
+                //        TerrainManager.hexGrid[x, y].terrainType = (TerrainType)(i);
+                //        GL.Color(new Color(biomes[i].color.r, biomes[i].color.g, biomes[i].color.b)); //  * (1 - 0.3f * (1 - TerrainManager.hexGrid[x, y].height / 6f))
+                //        break;
+                //    }
+                //}
+
+                //Debug.Log(this.Terrain.TerrainTypesList.TerrainTypes[(int)this.Terrain.Hexes[x, y].TerrainType].Color);
+                GL.Color(new Color(this.Terrain.TerrainTypesList.TerrainTypes[(int)this.Terrain.Hexes[x, y].TerrainType].Color.r, this.Terrain.TerrainTypesList.TerrainTypes[(int)this.Terrain.Hexes[x, y].TerrainType].Color.g, this.Terrain.TerrainTypesList.TerrainTypes[(int)this.Terrain.Hexes[x, y].TerrainType].Color.b));
+                //GL.Color(Color.blue);
+
                 GL.Vertex3(posX + HexProperties.vertPos[0].x, posY + HexProperties.vertPos[0].y, 0);
                 GL.Vertex3(posX + HexProperties.vertPos[1].x, posY + HexProperties.vertPos[1].y, 0);
                 GL.Vertex3(posX + HexProperties.vertPos[2].x, posY + HexProperties.vertPos[2].y, 0);

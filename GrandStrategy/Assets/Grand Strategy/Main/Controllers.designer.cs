@@ -490,3 +490,54 @@ public class WorldControllerBase : Controller {
         this.GenerateWorld(command.Sender as WorldViewModel);
     }
 }
+
+public class PlayerControllerBase : Controller {
+    
+    private IViewModelManager _PlayerManager;
+    
+    [InjectAttribute("Player")]
+    public IViewModelManager PlayerManager {
+        get {
+            return _PlayerManager;
+        }
+        set {
+            _PlayerManager = value;
+        }
+    }
+    
+    public System.Collections.Generic.IEnumerable<PlayerViewModel> PlayerViewModels {
+        get {
+            return PlayerManager.OfType<PlayerViewModel>();
+        }
+    }
+    
+    public override void Setup() {
+        // This is called when the controller is created
+        this.EventAggregator.OnViewModelCreated<PlayerViewModel>().Subscribe(this.Initialize);;
+        this.EventAggregator.OnViewModelDestroyed<PlayerViewModel>().Subscribe(this.DisposingViewModel);;
+    }
+    
+    public override void Initialize(ViewModel viewModel) {
+        base.Initialize(viewModel);
+        // This is called when a viewmodel is created
+        this.InitializePlayer(((PlayerViewModel)(viewModel)));
+    }
+    
+    public virtual PlayerViewModel CreatePlayer() {
+        return ((PlayerViewModel)(this.Create()));
+    }
+    
+    public override ViewModel CreateEmpty() {
+        return new PlayerViewModel(this.EventAggregator);
+    }
+    
+    public virtual void InitializePlayer(PlayerViewModel viewModel) {
+        // This is called when a PlayerViewModel is created
+        PlayerManager.Add(viewModel);
+    }
+    
+    public override void DisposingViewModel(ViewModel viewModel) {
+        base.DisposingViewModel(viewModel);
+        PlayerManager.Remove(viewModel);
+    }
+}

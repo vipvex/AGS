@@ -18,7 +18,7 @@ public enum TerrainType {
     
     TropicalRainforest,
     
-    SeasonalRainforest,
+    TropicalSeasonalForest,
     
     Savana,
     

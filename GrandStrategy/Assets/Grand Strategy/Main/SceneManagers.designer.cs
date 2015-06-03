@@ -23,6 +23,8 @@ public class TestingSceneBase : SceneManager {
     
     private WeatherViewModel _Weather;
     
+    private PlayerController _PlayerController;
+    
     private TerrainController _TerrainController;
     
     private ResourceController _ResourceController;
@@ -67,6 +69,19 @@ public class TestingSceneBase : SceneManager {
             return _Weather;
         }
         set {
+        }
+    }
+    
+    [InjectAttribute()]
+    public virtual PlayerController PlayerController {
+        get {
+            if (_PlayerController==null) {
+                _PlayerController = Container.CreateInstance(typeof(PlayerController)) as PlayerController;;
+            }
+            return _PlayerController;
+        }
+        set {
+            _PlayerController = value;
         }
     }
     
@@ -139,6 +154,8 @@ public class TestingSceneBase : SceneManager {
         Container.RegisterViewModel<TerrainViewModel>(Terrain, "Terrain");
         Container.RegisterViewModel<WorldViewModel>(World, "World");
         Container.RegisterViewModel<WeatherViewModel>(Weather, "Weather");
+        Container.RegisterViewModelManager<PlayerViewModel>(new ViewModelManager<PlayerViewModel>());
+        Container.RegisterController<PlayerController>(PlayerController);
         Container.RegisterViewModelManager<TerrainViewModel>(new ViewModelManager<TerrainViewModel>());
         Container.RegisterController<TerrainController>(TerrainController);
         Container.RegisterViewModelManager<ResourceViewModel>(new ViewModelManager<ResourceViewModel>());

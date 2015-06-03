@@ -86,7 +86,7 @@ public class TerrainPreviewViewBase : ViewBase {
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
     [UnityEngine.HideInInspector()]
-    public ChunkViewModel[,] _Chunks;
+    public String _Chunks;
     
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
@@ -178,6 +178,21 @@ public class TerrainPreviewViewBase : ViewBase {
     [UnityEngine.HideInInspector()]
     public Vector3 _CameraPos;
     
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public AnimationCurve _LatitudeTempCurve;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public TerrainTypesList _TerrainTypesList;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public AnimationCurve _AltitudeTempCurve;
+    
     [UFToggleGroup("GenerateChunks")]
     [UnityEngine.HideInInspector()]
     public bool _BindGenerateChunks = true;
@@ -239,6 +254,9 @@ public class TerrainPreviewViewBase : ViewBase {
         terrainpreviewview.ChunkHexCountX = this._ChunkHexCountX;
         terrainpreviewview.ChunkHexCountY = this._ChunkHexCountY;
         terrainpreviewview.CameraPos = this._CameraPos;
+        terrainpreviewview.LatitudeTempCurve = this._LatitudeTempCurve;
+        terrainpreviewview.TerrainTypesList = this._TerrainTypesList;
+        terrainpreviewview.AltitudeTempCurve = this._AltitudeTempCurve;
     }
     
     public override void Bind() {
@@ -404,7 +422,7 @@ public class TerrainViewBase : ViewBase {
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
     [UnityEngine.HideInInspector()]
-    public ChunkViewModel[,] _Chunks;
+    public String _Chunks;
     
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
@@ -496,6 +514,21 @@ public class TerrainViewBase : ViewBase {
     [UnityEngine.HideInInspector()]
     public Vector3 _CameraPos;
     
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public AnimationCurve _LatitudeTempCurve;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public TerrainTypesList _TerrainTypesList;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public AnimationCurve _AltitudeTempCurve;
+    
     public override string DefaultIdentifier {
         get {
             return "Terrain";
@@ -553,6 +586,9 @@ public class TerrainViewBase : ViewBase {
         terrainview.ChunkHexCountX = this._ChunkHexCountX;
         terrainview.ChunkHexCountY = this._ChunkHexCountY;
         terrainview.CameraPos = this._CameraPos;
+        terrainview.LatitudeTempCurve = this._LatitudeTempCurve;
+        terrainview.TerrainTypesList = this._TerrainTypesList;
+        terrainview.AltitudeTempCurve = this._AltitudeTempCurve;
     }
     
     public override void Bind() {
@@ -659,7 +695,7 @@ public class ChunkManagerViewBase : ViewBase {
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
     [UnityEngine.HideInInspector()]
-    public ChunkViewModel[,] _Chunks;
+    public String _Chunks;
     
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
@@ -751,6 +787,21 @@ public class ChunkManagerViewBase : ViewBase {
     [UnityEngine.HideInInspector()]
     public Vector3 _CameraPos;
     
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public AnimationCurve _LatitudeTempCurve;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public TerrainTypesList _TerrainTypesList;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public AnimationCurve _AltitudeTempCurve;
+    
     [UFToggleGroup("GenerateChunks")]
     [UnityEngine.HideInInspector()]
     public bool _BindGenerateChunks = true;
@@ -827,6 +878,9 @@ public class ChunkManagerViewBase : ViewBase {
         chunkmanagerview.ChunkHexCountX = this._ChunkHexCountX;
         chunkmanagerview.ChunkHexCountY = this._ChunkHexCountY;
         chunkmanagerview.CameraPos = this._CameraPos;
+        chunkmanagerview.LatitudeTempCurve = this._LatitudeTempCurve;
+        chunkmanagerview.TerrainTypesList = this._TerrainTypesList;
+        chunkmanagerview.AltitudeTempCurve = this._AltitudeTempCurve;
     }
     
     public override void Bind() {
@@ -865,5 +919,45 @@ public class ChunkManagerViewBase : ViewBase {
     public virtual void ExecuteErosion(ErosionCommand command) {
         command.Sender = Terrain;
         Terrain.Erosion.OnNext(command);
+    }
+}
+
+public class PlayerUIBase : ViewBase {
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Hex _SelectedHex;
+    
+    public override string DefaultIdentifier {
+        get {
+            return base.DefaultIdentifier;
+        }
+    }
+    
+    public override System.Type ViewModelType {
+        get {
+            return typeof(PlayerViewModel);
+        }
+    }
+    
+    public PlayerViewModel Player {
+        get {
+            return (PlayerViewModel)ViewModelObject;
+        }
+    }
+    
+    public override ViewModel CreateModel() {
+        return this.RequestViewModel();
+    }
+    
+    protected override void InitializeViewModel(ViewModel model) {
+        base.InitializeViewModel(model);
+        var playerui = ((PlayerViewModel)model);
+        playerui.SelectedHex = this._SelectedHex;
+    }
+    
+    public override void Bind() {
+        base.Bind();
     }
 }

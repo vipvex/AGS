@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 3f41641e7310f034aa01e5a047bd6960
-timeCreated: 1433301792
+timeCreated: 1435164861
 licenseType: Pro
 SubstanceImporter:
   serializedVersion: 5
@@ -8,8 +8,8 @@ SubstanceImporter:
   - serializedVersion: 16
     name: terrain
     prototypeName: terrain
-    shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
-    shaderKeywords: _METALLICGLOSSMAP _NORMALMAP
+    shader: {fileID: 2, guid: 0000000000000000f000000000000000, type: 0}
+    shaderKeywords: _NORMALMAP
     renderQueue: -1
     lightmapFlags: 5
     inputs:
@@ -47,7 +47,7 @@ SubstanceImporter:
         scalar[1]: 0
         scalar[2]: 0
         scalar[3]: 0
-        texture: {fileID: 2800000, guid: 3bff1255a9186504386053f4a3979645, type: 3}
+        texture: {fileID: 2800000, guid: fd49f6ea548b34d4fb928551889a8a33, type: 3}
     - name: tropical_seasonal_forest
       value:
         scalar[0]: 0
@@ -75,14 +75,14 @@ SubstanceImporter:
         scalar[1]: 0
         scalar[2]: 0
         scalar[3]: 0
-        texture: {fileID: 2800000, guid: 72c20b4f09094224dbc674cfe9818481, type: 3}
+        texture: {fileID: 2800000, guid: fd49f6ea548b34d4fb928551889a8a33, type: 3}
     - name: temperate_seasonal_forest
       value:
         scalar[0]: 0
         scalar[1]: 0
         scalar[2]: 0
         scalar[3]: 0
-        texture: {fileID: 2800000, guid: e2af3320c04402b4aa9e899025984ee4, type: 3}
+        texture: {fileID: 2800000, guid: f2dab141ecd1e1a43a18a5496e10bad9, type: 3}
     - name: grassland
       value:
         scalar[0]: 0
@@ -120,7 +120,7 @@ SubstanceImporter:
         texture: {instanceID: 0}
     - name: normal_intensity
       value:
-        scalar[0]: 2
+        scalar[0]: 3
         scalar[1]: 0
         scalar[2]: 0
         scalar[3]: 0
@@ -134,7 +134,7 @@ SubstanceImporter:
         texture: {instanceID: 0}
     - name: roughness_lightness
       value:
-        scalar[0]: .860000014
+        scalar[0]: .796999991
         scalar[1]: 0
         scalar[2]: 0
         scalar[3]: 0
@@ -251,6 +251,27 @@ SubstanceImporter:
         scalar[2]: 0
         scalar[3]: 0
         texture: {instanceID: 0}
+    - name: biome_extra_length
+      value:
+        scalar[0]: 2
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+    - name: biome_warp_intensity
+      value:
+        scalar[0]: .0500000007
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+    - name: elevation_lines_opacity
+      value:
+        scalar[0]: 0
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
     materialInformation:
       serializedVersion: 5
       offset: {x: 0, y: 0}
@@ -275,60 +296,15 @@ SubstanceImporter:
             texture: {instanceID: 0}
             scale: {x: 1, y: 1}
             offset: {x: 0, y: 0}
-        data:
-          first:
-            name: _DetailNormalMap
-          second:
-            texture: {instanceID: 0}
-            scale: {x: 1, y: 1}
-            offset: {x: 0, y: 0}
-        data:
-          first:
-            name: _ParallaxMap
-          second:
-            texture: {instanceID: 0}
-            scale: {x: 1, y: 1}
-            offset: {x: 0, y: 0}
-        data:
-          first:
-            name: _OcclusionMap
-          second:
-            texture: {instanceID: 0}
-            scale: {x: 1, y: 1}
-            offset: {x: 0, y: 0}
-        data:
-          first:
-            name: _EmissionMap
-          second:
-            texture: {instanceID: 0}
-            scale: {x: 1, y: 1}
-            offset: {x: 0, y: 0}
-        data:
-          first:
-            name: _DetailMask
-          second:
-            texture: {instanceID: 0}
-            scale: {x: 1, y: 1}
-            offset: {x: 0, y: 0}
-        data:
-          first:
-            name: _DetailAlbedoMap
-          second:
-            texture: {instanceID: 0}
-            scale: {x: 1, y: 1}
-            offset: {x: 0, y: 0}
-        data:
-          first:
-            name: _MetallicGlossMap
-          second:
-            texture: {instanceID: 0}
-            scale: {x: 1, y: 1}
-            offset: {x: 0, y: 0}
       floats:
         data:
           first:
             name: _Cutoff
           second: .5
+        data:
+          first:
+            name: _Shininess
+          second: .078125
         data:
           first:
             name: _SrcBlend
@@ -348,7 +324,7 @@ SubstanceImporter:
         data:
           first:
             name: _Glossiness
-          second: .5
+          second: 0
         data:
           first:
             name: _BumpScale
@@ -389,7 +365,7 @@ SubstanceImporter:
         data:
           first:
             name: _SpecColor
-          second: {r: .200000003, g: .200000003, b: .200000003, a: 1}
+          second: {r: 0, g: 0, b: 0, a: 1}
         data:
           first:
             name: _EmissionColorUI
@@ -429,15 +405,11 @@ SubstanceImporter:
         name: _BumpMap
       material: {instanceID: 0}
       baseUID: 2315483004
-    - shaderProp:
-        name: _MetallicGlossMap
-      material: {instanceID: 0}
-      baseUID: 2315483000
     buildTargetSettings:
     - serializedVersion: 2
       buildTarget: 
-      textureWidth: 1024
-      textureHeight: 1024
+      textureWidth: 512
+      textureHeight: 512
       textureFormat: 1
       loadingBehavior: 0
   deletedPrototypes:

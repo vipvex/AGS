@@ -15,5 +15,6 @@ public class PlayerController : PlayerControllerBase {
     public override void InitializePlayer(PlayerViewModel viewModel) {
         base.InitializePlayer(viewModel);
         // This is called when a PlayerViewModel is created
+
     }
 }

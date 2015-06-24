@@ -12,6 +12,7 @@ public class ChunkManagerView : ChunkManagerViewBase
 
     public GameObject ChunkPrefab;
     public float ChunkMeshResolution;
+    public int ChunkCollisionResolution;
 
     private GameObject[,] Chunks;
     private Texture2D[,] ChunkHeightmaps;
@@ -43,6 +44,13 @@ public class ChunkManagerView : ChunkManagerViewBase
     private Vector3 CameraPos;
     private Vector2Int CameraChunkIndex;
 
+
+
+    private Vector3[] vertices;
+    private Vector3[] normals;
+    private Vector2[] uv;
+
+
     public class ChunkLOD
     {
         public bool visible;
@@ -62,6 +70,7 @@ public class ChunkManagerView : ChunkManagerViewBase
     private void SetupChunkSettings()
     {
         ChunkLODs = new ChunkLOD[Chunks.GetLength(0), Chunks.GetLength(1)];
+
         for (int x = 0; x < ChunkLODs.GetLength(0); x++)
         {
             for (int y = 0; y < ChunkLODs.GetLength(1); y++)
@@ -112,7 +121,7 @@ public class ChunkManagerView : ChunkManagerViewBase
                 ChunkIndexY = y + CameraChunkIndex.y;
 
                 // if the chunk view is out of the bounds of the world
-                if (ChunkIndexX >= ChunkCountX || ChunkIndexY >= ChunkCountY || ChunkIndexX < 0 || ChunkIndexY < 0)
+                if (ChunkIndexX > ChunkCountX || ChunkIndexY > ChunkCountY || ChunkIndexX < 0 || ChunkIndexY < 0)
                 {
                     continue;
                 }
@@ -128,7 +137,7 @@ public class ChunkManagerView : ChunkManagerViewBase
 
                     // Make sure to update the surrounding chunks to fix the seams
                     // Top
-                    if (ChunkIndexY <= ChunkCountY)
+                    if (ChunkIndexY < ChunkCountY)
                     {
                         ChunkLODs[ChunkIndexX, ChunkIndexY + 1].needsToUpdate = true;
                     }
@@ -140,7 +149,7 @@ public class ChunkManagerView : ChunkManagerViewBase
                     }
 
                     // Right
-                    if (ChunkIndexX <= ChunkCountX)
+                    if (ChunkIndexX < ChunkCountX)
                     {
                         ChunkLODs[ChunkIndexX + 1, ChunkIndexY].needsToUpdate = true;
                     }
@@ -156,9 +165,9 @@ public class ChunkManagerView : ChunkManagerViewBase
 
         // Update all the chunks that need updating
         bool lowerResTop = false, lowerResRight = false, lowerResBottom = false;
-        for (int x = 0; x < ChunkCountX; x++)
+        for (int x = 0; x <= ChunkCountX; x++)
         {
-            for (int y = 0; y < ChunkCountY; y++)
+            for (int y = 0; y <= ChunkCountY; y++)
             {
                 if (ChunkLODs[x, y].needsToUpdate && ChunkLODs[x, y].visible)
                 {
@@ -270,6 +279,8 @@ public class ChunkManagerView : ChunkManagerViewBase
                 Chunks[x, y].name = "Chunk [" + x + ", " + y + "]";
                 
                 UpdateChunkTextures(Chunks[x, y], x, y);
+                UpdateChunkCollisionMesh(x, y);
+                
 
                 yield return null;
             }
@@ -280,6 +291,7 @@ public class ChunkManagerView : ChunkManagerViewBase
         ChunkCountX = Terrain.Chunks.GetLength(0) - 1;
         ChunkCountY = Terrain.Chunks.GetLength(1) - 1;
         SetupChunkSettings();
+        
 
         //StitchChunks();
         //GenerateVegetation();
@@ -516,9 +528,9 @@ public class ChunkManagerView : ChunkManagerViewBase
         float uvStep = 1f / Terrain.ChunkSize;
 
 
-        Vector3[] vertices = new Vector3[(res + 1) * (res + 1)];
-        Vector3[] normals = new Vector3[vertices.Length];
-        Vector2[] uv = new Vector2[vertices.Length];
+        vertices = new Vector3[(res + 1) * (res + 1)];
+        normals = new Vector3[vertices.Length];
+        uv = new Vector2[vertices.Length];
 
         float xPos, zPos = 0;
         float lowX, lowZ, leftXHeight, rightXHeight, topZHeight, botZHeight, lowXFloat, lowZFloat, difference, increment = 0;
@@ -604,7 +616,7 @@ public class ChunkManagerView : ChunkManagerViewBase
         }
 
         mesh.vertices = vertices;
-        mesh.normals = normals;
+        mesh.normals = normals;        
         mesh.uv = uv;
 
         int[] triangles = new int[res * res * 6];
@@ -628,21 +640,119 @@ public class ChunkManagerView : ChunkManagerViewBase
     }
 
 
-    //Debug.Log(leftOver);
-    //Debug.Log(((float)leftOver / (float)lowerVertsToHighSteps));
-    //float bonusUVStep = uvStep * ((float)leftOver / (float)lowerVertsToHighSteps);
-    ////Debug.Log(bonusUVStep);
-    ////Debug.Log(uvStep);
-    //
-    //vertices[v] = new Vector3(Mathf.Clamp(newX * lowerResStep / Terrain.PixelsPerUnit, 0, res * resStep / Terrain.PixelsPerUnit),
-    //                          ChunkHeightmaps[ChunkX, Mathf.Clamp(ChunkY + 1, 0, Terrain.Chunks.GetLength(1) - 1)].GetPixel((int)(newX * lowerHeightmapStep), 0).grayscale * (float)Terrain.PixelsToHeight,
-    //                          Mathf.Clamp(z * resStep / Terrain.PixelsPerUnit, 0, res * resStep / Terrain.PixelsPerUnit)
-    //                          ); 
-    //
-    //normals[v] = Vector3.up;
-    //Debug.Log(new Vector2(x * resStep * uvStep + bonusUVStep, z * resStep * uvStep));
-    //uv[v] = new Vector2(x * resStep * uvStep + bonusUVStep, z * resStep * uvStep);
-    //
-    //Debug.Log(uv[v]);
+    private void UpdateChunkCollisionMesh(int ChunkX, int ChunkY)
+    {
 
+        //MeshCollider meshCollider = Chunks[ChunkX, ChunkY].GetComponent<MeshCollider>(); //Chunks[ChunkX, ChunkY].GetComponent<MeshCollider>().sharedMesh;
+        Mesh meshCollider = new Mesh();
+
+        //Debug.Log(Chunks[ChunkX, ChunkY].GetComponent<MeshCollider>());
+        //meshCollider.Clear();
+
+        vertices = new Vector3[(ChunkCollisionResolution + 1) * (ChunkCollisionResolution + 1)];
+
+        // Pixels per vetex point
+        //float resStep = ChunkSize / ChunkCollisionResolution;
+        float resStep = (float)Terrain.ChunkSize / (float)ChunkCollisionResolution;
+        float heightmapStep = (float)ChunkHeightmaps[ChunkX, ChunkY].width / (float)ChunkCollisionResolution;
+
+
+        for (int v = 0, z = 0; z <= ChunkCollisionResolution; z++)
+        {
+            for (int x = 0; x <= ChunkCollisionResolution; x++, v++)
+            {
+                vertices[v] = new Vector3(x * resStep / Terrain.PixelsPerUnit,
+                                          ChunkHeightmaps[ChunkX, ChunkY].GetPixel((int)(x * heightmapStep), (int)(z * heightmapStep)).grayscale * Terrain.PixelsToHeight,
+                                          z * resStep / Terrain.PixelsPerUnit);
+
+            }
+        }
+
+        meshCollider.vertices = vertices;
+
+        int[] triangles = new int[ChunkCollisionResolution * ChunkCollisionResolution * 6];
+        for (int t = 0, v = 0, y = 0; y < ChunkCollisionResolution; y++, v++)
+        {
+            for (int x = 0; x < ChunkCollisionResolution; x++, v++, t += 6)
+            {
+                triangles[t] = v;
+                triangles[t + 1] = v + ChunkCollisionResolution + 1;
+                triangles[t + 2] = v + 1;
+                triangles[t + 3] = v + 1;
+                triangles[t + 4] = v + ChunkCollisionResolution + 1;
+                triangles[t + 5] = v + ChunkCollisionResolution + 2;
+            }
+        }
+
+        meshCollider.triangles = triangles;
+        meshCollider.RecalculateBounds();
+
+        //meshCollider.sharedMesh = newMesh;
+        Chunks[ChunkX, ChunkY].GetComponent<MeshCollider>().sharedMesh = meshCollider;
+    }
+
+    private void CalculateNormals(int resolution)
+    {
+        for (int v = 0, z = 0; z <= resolution; z++)
+        {
+            for (int x = 0; x <= resolution; x++, v++)
+            {
+                normals[v] = new Vector3(-GetXDerivative(x, z, resolution), 1f, -GetZDerivative(x, z, resolution)).normalized;
+            }
+        }
+    }
+
+    private float GetXDerivative(int x, int z, int resolution)
+    {
+        int rowOffset = z * (resolution + 1);
+        float left, right, scale;
+        if (x > 0)
+        {
+            left = vertices[rowOffset + x].y;
+            if (x < resolution)
+            {
+                right = vertices[rowOffset + x + 1].y;
+                scale = 0.5f * resolution;
+            }
+            else
+            {
+                right = vertices[rowOffset + x].y;
+                scale = resolution;
+            }
+        }
+        else
+        {
+            left = vertices[rowOffset + x].y;
+            right = vertices[rowOffset + x + 1].y;
+            scale = resolution;
+        }
+        return (right - left) * scale;
+    }
+
+    private float GetZDerivative(int x, int z, int resolution)
+    {
+        int rowLength = resolution + 1;
+        float back, forward, scale;
+        if (z > 0)
+        {
+            back = vertices[(z) * rowLength + x].y;
+            if (z < resolution)
+            {
+                forward = vertices[(z + 1) * rowLength + x].y;
+                scale = 0.5f * resolution;
+            }
+            else
+            {
+                forward = vertices[z * rowLength + x].y;
+                scale = resolution;
+            }
+        }
+        else
+        {
+            back = vertices[z * rowLength + x].y;
+            forward = vertices[(z + 1) * rowLength + x].y;
+            scale = resolution;
+        }
+        return (forward - back) * scale;
+    }
 }

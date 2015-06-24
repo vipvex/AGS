@@ -1,16 +1,17 @@
 fileFormatVersion: 2
 guid: 2f50b4b96cdccd044bf05ea87a823479
-timeCreated: 1431288201
+timeCreated: 1433558086
 licenseType: Pro
 SubstanceImporter:
   serializedVersion: 5
   materialInstances:
-  - serializedVersion: 15
+  - serializedVersion: 16
     name: Terrain
     prototypeName: TerrainTest2
     shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
     shaderKeywords: _METALLICGLOSSMAP _NORMALMAP
     renderQueue: -1
+    lightmapFlags: 5
     inputs:
     - name: $outputsize
       value:
@@ -609,8 +610,8 @@ SubstanceImporter:
     buildTargetSettings:
     - serializedVersion: 2
       buildTarget: 
-      textureWidth: 512
-      textureHeight: 512
+      textureWidth: 1024
+      textureHeight: 1024
       textureFormat: 1
       loadingBehavior: 0
   deletedPrototypes: []

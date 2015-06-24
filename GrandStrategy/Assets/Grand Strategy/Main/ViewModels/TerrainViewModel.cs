@@ -8,10 +8,6 @@ using UniRx;
 
 public partial class TerrainViewModel : TerrainViewModelBase {
 
-    string myString = "blah";
-    string myMethodString() { return "blah"; }
-
-
     public override void Bind() {
         base.Bind();
     }
@@ -171,38 +167,40 @@ public partial class TerrainViewModel : TerrainViewModelBase {
                 }
             }   
         }
+        GenerateOcean(seaLevelHexes);
 
-        Debug.Log(seaLevelHexes.Count);
         // Go through all the water tiles in the map
-        List<Hex> scannedHexes = new List<Hex>();
-        while (seaLevelHexes.Count > 0)
-        {
-            scannedHexes.Clear();
-            scannedHexes.Add(seaLevelHexes[0]);
-
-            // Search outwards from the water tile to find ALL other water tiles around it
-            Hex.SearchNeighbors(scannedHexes[0], p_hex => p_hex.Elevation <= SeaLevel, scannedHexes);
-
-
-            // water pools
-            if (scannedHexes.Count < LakeMinSize)
-            {
-                //FlattenArea(scannedHexes);
-            }
-            else if (scannedHexes.Count < SeaMinSize) // make lake
-            {
-                GenerateLake(scannedHexes);
-            }
-            else                                      // make ocean
-            {
-                GenerateOcean(scannedHexes);
-            }
-
-            for (int i = 0; i < seaLevelHexes.Count; i++)
-            {
-                seaLevelHexes.Remove(seaLevelHexes[i]);                
-            }
-        }
+        //List<Hex> scannedHexes = new List<Hex>();
+        //while (seaLevelHexes.Count > 0)
+        //{
+        //    scannedHexes.Clear();
+        //    scannedHexes.AddRange(seaLevelHexes[0].SurroundingWaterHexes(SeaLevel));
+        //    //scannedHexes.RemoveAll(item => item == null);
+        //    Debug.Log(scannedHexes.Count);
+        //
+        //    // Search outwards from the water tile to find ALL other water tiles around it
+        //    //Hex.SearchNeighbors(scannedHexes[0], p_hex => p_hex.Elevation <= SeaLevel, scannedHexes);
+        //
+        //
+        //    // water pools
+        //    if (scannedHexes.Count < LakeMinSize)
+        //    {
+        //        //FlattenArea(scannedHexes);
+        //    }
+        //    else if (scannedHexes.Count < SeaMinSize)  // make lake
+        //    {
+        //        GenerateLake(scannedHexes);
+        //    }
+        //    else                                      // make ocean
+        //    {
+        //        GenerateOcean(scannedHexes);
+        //    }
+        //
+        //    for (int i = 0; i < seaLevelHexes.Count; i++)
+        //    {
+        //        seaLevelHexes.Remove(seaLevelHexes[i]);                
+        //    }
+        //}
 
         Timer.End();
     }
@@ -290,7 +288,7 @@ public partial class TerrainViewModel : TerrainViewModelBase {
 
             if (river.Count > RiverMaxLength) break;
         }
-        Debug.Log(river.Count);
+        //Debug.Log(river.Count);
     }
 
     public void AddRivers()
@@ -369,7 +367,7 @@ public partial class TerrainViewModel : TerrainViewModelBase {
         {
             for (int y = 0; y < Height; y++)
             {
-                temperature = (int)LatitudeTempCurve.Evaluate(Mathf.Abs((Height / 2f) - y) / Height);
+                temperature = (int)LatitudeTempCurve.Evaluate((float)y / (float)Height); // - (int)AltitudeTempCurve.Evaluate(Hexes[x, y].Elevation / Elevations); Mathf.Abs((Height / 2f) - y) / 
 
                 Hexes[x, y].Temperature = temperature;
                 Hexes[x, y].Humidity = 15;
@@ -387,8 +385,7 @@ public partial class TerrainViewModel : TerrainViewModelBase {
                 if (Hexes[x, y].WaterHex())
                     continue;
 
-                Hexes[x, y].TerrainType = TerrainTypesList.CalculateType(Hexes[x, y].Temperature - (int)AltitudeTempCurve.Evaluate(Hexes[x, y].Elevation / Elevations),
-                                                                         Hexes[x, y].Humidity);
+                Hexes[x, y].TerrainType = TerrainTypesList.CalculateType(Hexes[x, y].Temperature, Hexes[x, y].Humidity);
             }
         }
     }
@@ -521,6 +518,37 @@ public partial class TerrainViewModel : TerrainViewModelBase {
         return new Vector3(ChunkSize / PixelsPerUnit,
                            PixelsToHeight,
                            ChunkSize / PixelsPerUnit);
+    }
+
+    public Hex GetHexAtPos(Vector3 pos)
+    {
+        float pointX = pos.x;
+        float pointZ = pos.z;
+        pointX = pointX * PixelsPerUnit;
+        pointZ = pointZ * PixelsPerUnit;
+        pointZ += HexProperties.tileH;
+        pointX -= HexProperties.width / 2;
+        pointZ -= (HexProperties.height - HexProperties.tileH);
+
+
+        float q = (1f / 3f * Mathf.Sqrt(3f) * pointX - 1f / 3f * pointZ) / HexProperties.side;
+        float r = 2f / 3f * pointZ / HexProperties.side;
+
+
+        Vector3 cube = new Vector3();
+        cube.x = q;
+        cube.z = r;
+        cube.y = -cube.x - cube.z;
+
+        cube = Hexagon.RoundCubeCoord(cube);
+
+        Vector2 hoverHexAraray = Hexagon.CubeToOffsetOddQ(cube);
+        Hex hex = null;
+
+        if (hoverHexAraray.x >= 0 && hoverHexAraray.y >= 0 && hoverHexAraray.x < Hexes.GetLength(0) && hoverHexAraray.y < Hexes.GetLength(1))
+            hex = Hexes[(int)hoverHexAraray.x, (int)hoverHexAraray.y];
+
+        return hex;
     }
 
 }

@@ -19,7 +19,6 @@ public class BiomeListWindow : EditorWindow
 
         if (window == null)
         {
-            Debug.Log("MyWindow.Init");
             window = (BiomeListWindow)EditorWindow.GetWindow(typeof(BiomeListWindow));
         }
     }
@@ -51,10 +50,10 @@ public class BiomeListWindow : EditorWindow
                     for (int a = 0; a < terrainTypes.TerrainTypes[i].Areas.Count; a++)
 			        {
                         if (GUI.Button(new Rect((terrainTypes.TerrainTypes[i].Areas[a].x + 10) * 10,
-                                            (50 - terrainTypes.TerrainTypes[i].Areas[a].y - terrainTypes.TerrainTypes[i].Areas[a].height) * 10,
-                                            terrainTypes.TerrainTypes[i].Areas[a].width * 10,
-                                            (terrainTypes.TerrainTypes[i].Areas[a].height) * 10),
-                                            terrainTypes.TerrainTypes[i].terrainType.ToString()))
+                                               (50 - terrainTypes.TerrainTypes[i].Areas[a].y - terrainTypes.TerrainTypes[i].Areas[a].height) * 10,
+                                               terrainTypes.TerrainTypes[i].Areas[a].width * 10,
+                                               (terrainTypes.TerrainTypes[i].Areas[a].height) * 10),
+                                               terrainTypes.TerrainTypes[i].terrainType.ToString()))
                         {
                             selectedTerrainType = i;
                             selectedTerrainArea = a;

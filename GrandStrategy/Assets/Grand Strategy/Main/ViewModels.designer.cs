@@ -44,7 +44,7 @@ public partial class TerrainViewModelBase : ViewModel {
     
     private P<Int32> _MountainSpacingProperty;
     
-    private P<String> _ChunksProperty;
+    private P<ChunkViewModel[,]> _ChunksProperty;
     
     private P<Hex[,]> _HexesProperty;
     
@@ -215,7 +215,7 @@ public partial class TerrainViewModelBase : ViewModel {
         }
     }
     
-    public virtual P<String> ChunksProperty {
+    public virtual P<ChunkViewModel[,]> ChunksProperty {
         get {
             return _ChunksProperty;
         }
@@ -530,7 +530,7 @@ public partial class TerrainViewModelBase : ViewModel {
         }
     }
     
-    public virtual String Chunks {
+    public virtual ChunkViewModel[,] Chunks {
         get {
             return ChunksProperty.Value;
         }
@@ -773,7 +773,7 @@ public partial class TerrainViewModelBase : ViewModel {
         _MountainRangeFrequencyProperty = new P<Int32>(this, "MountainRangeFrequency");
         _MountainRangeScaleProperty = new P<Int32>(this, "MountainRangeScale");
         _MountainSpacingProperty = new P<Int32>(this, "MountainSpacing");
-        _ChunksProperty = new P<String>(this, "Chunks");
+        _ChunksProperty = new P<ChunkViewModel[,]>(this, "Chunks");
         _HexesProperty = new P<Hex[,]>(this, "Hexes");
         _ChunkSizeProperty = new P<Int32>(this, "ChunkSize");
         _HexSideLengthProperty = new P<Int32>(this, "HexSideLength");
@@ -812,7 +812,6 @@ public partial class TerrainViewModelBase : ViewModel {
         this.MountainRangeFrequency = stream.DeserializeInt("MountainRangeFrequency");;
         this.MountainRangeScale = stream.DeserializeInt("MountainRangeScale");;
         this.MountainSpacing = stream.DeserializeInt("MountainSpacing");;
-        this.Chunks = stream.DeserializeString("Chunks");;
         this.ChunkSize = stream.DeserializeInt("ChunkSize");;
         this.HexSideLength = stream.DeserializeInt("HexSideLength");;
         this.PixelsPerUnit = stream.DeserializeInt("PixelsPerUnit");;
@@ -845,7 +844,6 @@ public partial class TerrainViewModelBase : ViewModel {
         stream.SerializeInt("MountainRangeFrequency", this.MountainRangeFrequency);
         stream.SerializeInt("MountainRangeScale", this.MountainRangeScale);
         stream.SerializeInt("MountainSpacing", this.MountainSpacing);
-        stream.SerializeString("Chunks", this.Chunks);
         stream.SerializeInt("ChunkSize", this.ChunkSize);
         stream.SerializeInt("HexSideLength", this.HexSideLength);
         stream.SerializeInt("PixelsPerUnit", this.PixelsPerUnit);
@@ -1362,6 +1360,8 @@ public partial class PlayerViewModelBase : ViewModel {
     
     private P<Hex> _SelectedHexProperty;
     
+    private P<TerrainViewModel> _TerrainProperty;
+    
     public PlayerViewModelBase(IEventAggregator aggregator) : 
             base(aggregator) {
     }
@@ -1375,6 +1375,15 @@ public partial class PlayerViewModelBase : ViewModel {
         }
     }
     
+    public virtual P<TerrainViewModel> TerrainProperty {
+        get {
+            return _TerrainProperty;
+        }
+        set {
+            _TerrainProperty = value;
+        }
+    }
+    
     public virtual Hex SelectedHex {
         get {
             return SelectedHexProperty.Value;
@@ -1384,17 +1393,29 @@ public partial class PlayerViewModelBase : ViewModel {
         }
     }
     
+    public virtual TerrainViewModel Terrain {
+        get {
+            return TerrainProperty.Value;
+        }
+        set {
+            TerrainProperty.Value = value;
+        }
+    }
+    
     public override void Bind() {
         base.Bind();
         _SelectedHexProperty = new P<Hex>(this, "SelectedHex");
+        _TerrainProperty = new P<TerrainViewModel>(this, "Terrain");
     }
     
     public override void Read(ISerializerStream stream) {
         base.Read(stream);
+        		if (stream.DeepSerialize) this.Terrain = stream.DeserializeObject<TerrainViewModel>("Terrain");;
     }
     
     public override void Write(ISerializerStream stream) {
         base.Write(stream);
+        if (stream.DeepSerialize) stream.SerializeObject("Terrain", this.Terrain);;
     }
     
     protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
@@ -1405,6 +1426,8 @@ public partial class PlayerViewModelBase : ViewModel {
         base.FillProperties(list);
         // PropertiesChildItem
         list.Add(new ViewModelPropertyInfo(_SelectedHexProperty, false, false, false, false));
+        // PropertiesChildItem
+        list.Add(new ViewModelPropertyInfo(_TerrainProperty, true, false, false, false));
     }
 }
 

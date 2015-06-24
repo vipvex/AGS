@@ -12,7 +12,7 @@ public class TerrainTypesList : ScriptableObject
 
     public TerrainType CalculateType(int temperature, int humidity)
     {
-        terrainTypePos = new Vector2(temperature, humidity);
+        terrainTypePos = new Vector2(humidity, temperature);
         
         for (int i = 0; i < TerrainTypes.Count; i++)
         {

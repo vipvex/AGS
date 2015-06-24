@@ -15,6 +15,11 @@ public class Heap<T> where T : IHeapItem<T>
 
     public void Add(T item)
     {
+        if (currentItemCount >= items.Length)
+        {
+            Debug.Log(currentItemCount);
+        }
+
         item.HeapIndex = currentItemCount;
         items[currentItemCount] = item;
         SortUp(item);

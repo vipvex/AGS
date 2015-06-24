@@ -86,7 +86,7 @@ public class TerrainPreviewViewBase : ViewBase {
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
     [UnityEngine.HideInInspector()]
-    public String _Chunks;
+    public ChunkViewModel[,] _Chunks;
     
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
@@ -422,7 +422,7 @@ public class TerrainViewBase : ViewBase {
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
     [UnityEngine.HideInInspector()]
-    public String _Chunks;
+    public ChunkViewModel[,] _Chunks;
     
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
@@ -695,7 +695,7 @@ public class ChunkManagerViewBase : ViewBase {
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
     [UnityEngine.HideInInspector()]
-    public String _Chunks;
+    public ChunkViewModel[,] _Chunks;
     
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
@@ -929,6 +929,20 @@ public class PlayerUIBase : ViewBase {
     [UnityEngine.HideInInspector()]
     public Hex _SelectedHex;
     
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public ViewBase _Terrain;
+    
+    [UFToggleGroup("SelectedHex")]
+    [UnityEngine.HideInInspector()]
+    public bool _BindSelectedHex = true;
+    
+    [UFGroup("SelectedHex")]
+    [UnityEngine.SerializeField()]
+    [UnityEngine.Serialization.FormerlySerializedAsAttribute("_SelectedHexonlyWhenChanged")]
+    private bool _SelectedHexOnlyWhenChanged;
+    
     public override string DefaultIdentifier {
         get {
             return base.DefaultIdentifier;
@@ -955,6 +969,59 @@ public class PlayerUIBase : ViewBase {
         base.InitializeViewModel(model);
         var playerui = ((PlayerViewModel)model);
         playerui.SelectedHex = this._SelectedHex;
+        playerui.Terrain = this._Terrain == null ? null : this._Terrain.ViewModelObject as TerrainViewModel;
+    }
+    
+    public override void Bind() {
+        base.Bind();
+        if (_BindSelectedHex) {
+            this.BindProperty(this.Player.SelectedHexProperty, this.SelectedHexChanged, _SelectedHexOnlyWhenChanged);
+        }
+    }
+    
+    public virtual void SelectedHexChanged(Hex arg1) {
+    }
+}
+
+public class PlayerViewBase : ViewBase {
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Hex _SelectedHex;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public ViewBase _Terrain;
+    
+    public override string DefaultIdentifier {
+        get {
+            return base.DefaultIdentifier;
+        }
+    }
+    
+    public override System.Type ViewModelType {
+        get {
+            return typeof(PlayerViewModel);
+        }
+    }
+    
+    public PlayerViewModel Player {
+        get {
+            return (PlayerViewModel)ViewModelObject;
+        }
+    }
+    
+    public override ViewModel CreateModel() {
+        return this.RequestViewModel();
+    }
+    
+    protected override void InitializeViewModel(ViewModel model) {
+        base.InitializeViewModel(model);
+        var playerview = ((PlayerViewModel)model);
+        playerview.SelectedHex = this._SelectedHex;
+        playerview.Terrain = this._Terrain == null ? null : this._Terrain.ViewModelObject as TerrainViewModel;
     }
     
     public override void Bind() {

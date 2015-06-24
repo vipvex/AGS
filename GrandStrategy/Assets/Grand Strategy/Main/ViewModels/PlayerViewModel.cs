@@ -10,6 +10,5 @@ public partial class PlayerViewModel : PlayerViewModelBase {
     
     public override void Bind() {
         base.Bind();
-
     }
 }

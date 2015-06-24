@@ -172,5 +172,41 @@ public class Hex : HexBase, IHeapItem<Hex>
         return TerrainType == TerrainType.Lake || TerrainType == TerrainType.Ocean || TerrainType == TerrainType.Sea || TerrainType == TerrainType.River;
     }
 
+    public List<Hex> SurroundingWaterHexes(int waterElevation)
+    {
+
+        List<Hex> openSet = new List<Hex>();
+        HashSet<Hex> closedSet = new HashSet<Hex>();
+        openSet.Add(this);
+
+        while (openSet.Count > 0)
+        {
+            
+            Hex currentHex = openSet[0];
+            openSet.RemoveAt(0);
+
+            closedSet.Add(currentHex);
+
+            if (currentHex == null)
+            {
+                return openSet;
+            }
+
+            foreach (Hex neighbour in currentHex.neighbors)
+            {
+                if (closedSet.Contains(neighbour))
+                {
+                    continue;
+                }
+
+                if (neighbour.Elevation < waterElevation)        
+                    openSet.Add(neighbour);
+
+            }
+        }
+
+        return openSet;
+    }
+
     #endregion
 }

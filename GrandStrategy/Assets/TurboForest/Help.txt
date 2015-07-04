@@ -1,0 +1,11 @@
+
+Turbo Forest getting started:
+
+1. Create new scene
+2. Create "3d objects" -> "Plane"
+3. Scale plane by 100,100,100
+4. Create "3d object" -> "Turbo forest"
+5. Drag and drop your plane to TF component's distribute objects list
+6. Press "Generate" button in TF component
+
+For more info look at http://goo.gl/gqxhqT

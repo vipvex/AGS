@@ -50,6 +50,7 @@ public class PlayerUI : PlayerUIBase
             }
 
             ToolTipText.text = "Hex \n" +
+                               "Elevation: " + hex.Elevation + "\n" +
                                "Index: " + Player.SelectedHex.XIndex + ", " + Player.SelectedHex.YIndex + "\n" +
                                "Type: " + Player.SelectedHex.TerrainType + "\n" +
                                "Temperature: " + Player.SelectedHex.Temperature + "\n " +

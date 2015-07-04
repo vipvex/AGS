@@ -5,8 +5,8 @@ using System.Diagnostics;
 
 public class Pathfinding : MonoBehaviour
 {
-    /*
-    public static int gridSize;
+    
+    public static int gridSize = 1000;
 
 
     public static List<Hex> FindPath(Hex startHex, Hex targetHex)
@@ -42,12 +42,17 @@ public class Pathfinding : MonoBehaviour
                     continue;
                 }
 
-                int newMovementCostToNeighbour = currentHex.gCost + (int)Vector3.Distance(neighbour.worldPos, targetHex.worldPos);
+                int newMovementCostToNeighbour = currentHex.gCost +
+                                                 (int)Vector3.Distance(new Vector3(neighbour.WorldPos.x, 0, neighbour.WorldPos.z), new Vector3(targetHex.WorldPos.x, 0, targetHex.WorldPos.z)) +
+                                                 neighbour.MovementPenalty +
+                                                 Mathf.Clamp(neighbour.Elevation - currentHex.Elevation, 0, 100) * 50;
+
                 if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
                 {
+                    //UnityEngine.Debug.Log(newMovementCostToNeighbour);
                     neighbour.gCost = newMovementCostToNeighbour;
-                    neighbour.hCost = (int)Vector3.Distance(neighbour.worldPos, targetHex.worldPos); // might break things
-                    neighbour.parent = currentHex;
+                    neighbour.hCost = (int)Vector3.Distance(neighbour.WorldPos, targetHex.WorldPos); // might break things
+                    neighbour.Parent = currentHex;
 
                     if (!openSet.Contains(neighbour))
                         openSet.Add(neighbour);
@@ -71,7 +76,7 @@ public class Pathfinding : MonoBehaviour
         while (currentHex != startHex)
         {
             path.Add(currentHex);
-            currentHex = currentHex.parent;
+            currentHex = currentHex.Parent;
         }
         path.Reverse();
 
@@ -107,12 +112,12 @@ public class Pathfinding : MonoBehaviour
                 }
 
                 // if the new cost is less than the old cost replace
-                int newMovementCostToNeighbour = currentHex.gCost + (int)Vector3.Distance(neighbour.worldPos, startHex.worldPos);
+                int newMovementCostToNeighbour = currentHex.gCost + (int)Vector3.Distance(neighbour.WorldPos, startHex.WorldPos);
                 if (newMovementCostToNeighbour > range || !openSet.Contains(neighbour))
                 {
                     neighbour.gCost = newMovementCostToNeighbour;
-                    neighbour.hCost = (int)Vector3.Distance(neighbour.worldPos, startHex.worldPos); // might break things
-                    neighbour.parent = currentHex;
+                    neighbour.hCost = (int)Vector3.Distance(neighbour.WorldPos, startHex.WorldPos); // might break things
+                    neighbour.Parent = currentHex;
 
                     if (!openSet.Contains(neighbour))
                         openSet.Add(neighbour);
@@ -134,5 +139,5 @@ public class Pathfinding : MonoBehaviour
         return area;
 
     }
-    */
+    
 }

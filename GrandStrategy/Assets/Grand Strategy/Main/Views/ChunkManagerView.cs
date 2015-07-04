@@ -6,18 +6,18 @@ using UniRx;
 using UnityEngine;
 
 
-public class ChunkManagerView : ChunkManagerViewBase 
+public class ChunkManagerView : ChunkManagerViewBase
 {
-   
+
+    #region Chunks
 
     public GameObject ChunkPrefab;
     public float ChunkMeshResolution;
     public int ChunkCollisionResolution;
 
     private GameObject[,] Chunks;
-    private Texture2D[,] ChunkHeightmaps;
-    private ChunkLOD[,] ChunkLODs;
-
+    private Texture2D[,]  ChunkHeightmaps;
+    private ChunkLOD[,]   ChunkLODs;
 
     [Space(10)]
     public int            ChunkViewRange = 8;
@@ -25,7 +25,16 @@ public class ChunkManagerView : ChunkManagerViewBase
     public int[]          ChunkLODRes;
     public Color32[]      ChunkLODColors;
 
+    #endregion
 
+    #region Trees
+
+    public GameObject TreePrefab;
+    public int ChunkTreeDensity;
+
+    #endregion
+
+    #region Privates
     [Space(10)]
     public bool drawGizmo = true;
 
@@ -33,7 +42,6 @@ public class ChunkManagerView : ChunkManagerViewBase
     private int ChunkCountX;
     private int ChunkCountY;
     
-
 
     private RenderTexture renderTexture;
     private Material material;
@@ -46,9 +54,11 @@ public class ChunkManagerView : ChunkManagerViewBase
 
 
 
+    private int[] triangles;
     private Vector3[] vertices;
     private Vector3[] normals;
     private Vector2[] uv;
+#endregion
 
 
     public class ChunkLOD
@@ -63,8 +73,6 @@ public class ChunkManagerView : ChunkManagerViewBase
     {
         base.Start();
         SetupRenderingSettings();
-
-        //Debug.Log(new Rect(40, 40, 50, 50).Contains(new Vector2(25, 25)));
     }
 
     private void SetupChunkSettings()
@@ -224,39 +232,55 @@ public class ChunkManagerView : ChunkManagerViewBase
     {
         if (!drawGizmo || (Terrain == null || Terrain.Chunks == null)) return;
 
-        float ChunkSize = Terrain.ChunkSize / Terrain.PixelsPerUnit;
+        //Mesh mesh = null;
+        //
+        //for (int x = 0; x < 1; x++)
+        //{
+        //    for (int y = 0; y < 1; y++)
+        //    {
+        //        mesh = Chunks[x, y].GetComponent<MeshFilter>().mesh;
+        //
+        //        for (int i = 0; i < mesh.normals.Length; i++)
+        //        {
+        //            Gizmos.DrawRay(mesh.vertices[i], mesh.normals[i]);
+        //        }
+        //    }
+        //}
 
-        Vector3 cameraPos = Camera.main.transform.position;
-        Vector3 cameraChunkPos = new Vector3((int)(cameraPos.x / ChunkSize) * ChunkSize, 0, (int)(cameraPos.z / ChunkSize) * ChunkSize);
-        Vector2Int cameraIndex = new Vector2Int((int)(cameraChunkPos.x / ChunkSize), (int)(cameraChunkPos.z / ChunkSize));
 
-        List<Vector2Int> visibleChunks = new List<Vector2Int>();
-        visibleChunks.Add(cameraIndex);
-        for (int x = -ChunkViewRange; x < ChunkViewRange + 1; x++)
-        {
-            for (int y = -ChunkViewRange; y < ChunkViewRange + 1; y++)
-            {        
-                visibleChunks.Add(new Vector2Int(cameraIndex.x + x, cameraIndex.y + y));
-            }
-        }
-
-
-        Gizmos.color = Color.blue;
-        for (int x = 0; x < Terrain.Chunks.GetLength(0); x++)
-        {
-            for (int y = 0; y < Terrain.Chunks.GetLength(1); y++)
-            {
-                if (visibleChunks.Contains(new Vector2Int(x, y)))
-                {
-                    Gizmos.color = (Color)ChunkLODColors[(int)ChunkLODCurve.Evaluate(Vector3.Distance(Terrain.ChunkCenterWorldPos(x, y), cameraPos))];
-                    
-                }else{
-                    Gizmos.color = Color.blue;
-                }
-                
-                Gizmos.DrawWireCube(Terrain.ChunkCenterWorldPos(x, y) + ((Vector3.up * Terrain.PixelsToHeight) / 2), Terrain.ChunkWorldSize() - Vector3.one * 0.05f);
-            }
-        }
+        //float ChunkSize = Terrain.ChunkSize / Terrain.PixelsPerUnit;
+        //
+        //Vector3 cameraPos = Camera.main.transform.position;
+        //Vector3 cameraChunkPos = new Vector3((int)(cameraPos.x / ChunkSize) * ChunkSize, 0, (int)(cameraPos.z / ChunkSize) * ChunkSize);
+        //Vector2Int cameraIndex = new Vector2Int((int)(cameraChunkPos.x / ChunkSize), (int)(cameraChunkPos.z / ChunkSize));
+        //
+        //List<Vector2Int> visibleChunks = new List<Vector2Int>();
+        //visibleChunks.Add(cameraIndex);
+        //for (int x = -ChunkViewRange; x < ChunkViewRange + 1; x++)
+        //{
+        //    for (int y = -ChunkViewRange; y < ChunkViewRange + 1; y++)
+        //    {        
+        //        visibleChunks.Add(new Vector2Int(cameraIndex.x + x, cameraIndex.y + y));
+        //    }
+        //}
+        //
+        //
+        //Gizmos.color = Color.blue;
+        //for (int x = 0; x < Terrain.Chunks.GetLength(0); x++)
+        //{
+        //    for (int y = 0; y < Terrain.Chunks.GetLength(1); y++)
+        //    {
+        //        if (visibleChunks.Contains(new Vector2Int(x, y)))
+        //        {
+        //            Gizmos.color = (Color)ChunkLODColors[(int)ChunkLODCurve.Evaluate(Vector3.Distance(Terrain.ChunkCenterWorldPos(x, y), cameraPos))];
+        //            
+        //        }else{
+        //            Gizmos.color = Color.blue;
+        //        }
+        //        
+        //        Gizmos.DrawWireCube(Terrain.ChunkCenterWorldPos(x, y) + ((Vector3.up * Terrain.PixelsToHeight) / 2), Terrain.ChunkWorldSize() - Vector3.one * 0.05f);
+        //    }
+        //}
     }
 
 
@@ -291,7 +315,7 @@ public class ChunkManagerView : ChunkManagerViewBase
         ChunkCountX = Terrain.Chunks.GetLength(0) - 1;
         ChunkCountY = Terrain.Chunks.GetLength(1) - 1;
         SetupChunkSettings();
-        
+        GenerateTrees();
 
         //StitchChunks();
         //GenerateVegetation();
@@ -610,16 +634,14 @@ public class ChunkManagerView : ChunkManagerViewBase
                                           height,
                                           zPos);
 
-                normals[v] = Vector3.up;
+                normals[v] = Vector3.zero;
                 uv[v] = new Vector2(x * resStep * uvStep, z * resStep * uvStep);
             }
         }
 
-        mesh.vertices = vertices;
-        mesh.normals = normals;        
-        mesh.uv = uv;
 
-        int[] triangles = new int[res * res * 6];
+
+        triangles = new int[res * res * 6];
         for (int t = 0, v = 0, y = 0; y < res; y++, v++)
         {
             for (int x = 0; x < res; x++, v++, t += 6)
@@ -632,11 +654,39 @@ public class ChunkManagerView : ChunkManagerViewBase
                 triangles[t + 5] = v + res + 2;
             }
         }
+
+        mesh.vertices = vertices;
+        mesh.uv = uv;
         mesh.triangles = triangles;
 
+
         //CalculateNormals(res);
-        TangentSolver.Solve(mesh);
-        mesh.Optimize();
+
+
+
+        mesh.normals = normals;
+       
+        mesh.normals = RecalculateNormals2(); //
+        //mesh.RecalculateNormals();
+        //NormalSolver.RecalculateNormals(mesh, 20);
+        //mesh.RecalculateBounds();
+
+        //TangentSolver.Solve(mesh);
+
+
+        //mesh.Optimize();
+
+
+        //CalculateNormals(res);
+
+        //TangentSolver.Solve(mesh);
+        //mesh.normals = normals;     
+        //
+        //mesh.triangles = triangles;
+        
+        //TangentSolver.Solve(mesh);
+        
+        //mesh.Optimize();
     }
 
 
@@ -691,16 +741,36 @@ public class ChunkManagerView : ChunkManagerViewBase
         Chunks[ChunkX, ChunkY].GetComponent<MeshCollider>().sharedMesh = meshCollider;
     }
 
-    private void CalculateNormals(int resolution)
+    public Vector3[] RecalculateNormals2()
     {
-        for (int v = 0, z = 0; z <= resolution; z++)
+        //List<int> tris = this.data.triangles;
+        //Vector3[] normals = new Vector3[this.data.vertices.Count];
+        for (int i = 0; i < triangles.Length; i += 3)
         {
-            for (int x = 0; x <= resolution; x++, v++)
-            {
-                normals[v] = new Vector3(-GetXDerivative(x, z, resolution), 1f, -GetZDerivative(x, z, resolution)).normalized;
-            }
+            Vector3 a = vertices[triangles[i]] - vertices[triangles[i + 1]];
+            Vector3 b = vertices[triangles[i]] - vertices[triangles[i + 2]];
+
+            Vector3 normal = Vector3.Cross(a, b);
+            normals[triangles[i]] += normal;
+            normals[triangles[i + 1]] += normal;
+            normals[triangles[i + 2]] += normal;
         }
+
+        List<Vector3> nList = new List<Vector3>();
+        for (int i = 0; i < normals.Length; i++)
+        {
+            nList.Add(normals[i].normalized);
+        }
+        return nList.ToArray();
     }
+
+    private void CalculateNormals (int resolution) {
+		for (int v = 0, z = 0; z <= resolution; z++) {
+			for (int x = 0; x <= resolution; x++, v++) {
+                normals[v] = new Vector3(-GetXDerivative(x, z, resolution), 1f, -GetZDerivative(x, z, resolution)).normalized;
+			}
+		}
+	}
 
     private float GetXDerivative(int x, int z, int resolution)
     {
@@ -708,7 +778,7 @@ public class ChunkManagerView : ChunkManagerViewBase
         float left, right, scale;
         if (x > 0)
         {
-            left = vertices[rowOffset + x].y;
+            left = vertices[rowOffset + x - 1].y;
             if (x < resolution)
             {
                 right = vertices[rowOffset + x + 1].y;
@@ -735,7 +805,7 @@ public class ChunkManagerView : ChunkManagerViewBase
         float back, forward, scale;
         if (z > 0)
         {
-            back = vertices[(z) * rowLength + x].y;
+            back = vertices[(z - 1) * rowLength + x].y;
             if (z < resolution)
             {
                 forward = vertices[(z + 1) * rowLength + x].y;
@@ -755,4 +825,172 @@ public class ChunkManagerView : ChunkManagerViewBase
         }
         return (forward - back) * scale;
     }
+
+
+    public ChunkTrees[,] ChunkTreesList;
+    public Material[] TreeMaterials;
+    public int TreeCount;
+    public float HexTreeRadius = 0.4f;
+
+    public class ChunkTrees
+    {
+        public List<Vector3> trees = new List<Vector3>();
+    }
+
+    private void GenerateTrees()
+    {
+        float chunkSize = Terrain.ChunkSize / Terrain.PixelsPerUnit;
+        ChunkTreesList = new ChunkTrees[ChunkCountX, ChunkCountY];
+
+        for (int x = 0; x < ChunkTreesList.GetLength(0); x++)
+        {
+            for (int y = 0; y < ChunkTreesList.GetLength(1); y++)
+            {
+                ChunkTreesList[x, y] = new ChunkTrees();
+            }
+        }
+
+        int rand = 0;
+
+        for (int x = 0; x < Terrain.Hexes.GetLength(0); x++)
+        {
+            for (int y = 0; y < Terrain.Hexes.GetLength(1); y++)
+            {
+                rand = UnityEngine.Random.Range(0, 10);
+
+                if (Terrain.Hexes[x, y].WaterHex() || rand >= 8) continue;
+
+                for (int i = 0; i < TreeCount; i++)
+                {
+
+                    Vector3 pos = Terrain.Hexes[x, y].WorldPos + new Vector3(UnityEngine.Random.Range(-HexProperties.unityWidth, HexProperties.unityWidth) * HexTreeRadius, 
+                                                                             0,
+                                                                             UnityEngine.Random.Range(-HexProperties.unityWidth, HexProperties.unityWidth) * HexTreeRadius);
+
+                    Vector3 castFrom = new Vector3(pos.x, 50, pos.z);
+                    Vector3 castTo = new Vector3(pos.x, -50, pos.z);
+                    RaycastHit info;
+
+                    if (Physics.Linecast(castFrom, castTo, out info))
+                        pos.y = info.point.y;
+                    else
+                        continue;
+
+                    //Material mat = TreeMaterials[UnityEngine.Random.Range(0, TreeMaterials.Length)];
+
+
+                    int chunkX = Mathf.Clamp(Mathf.FloorToInt(pos.x / chunkSize), 0, ChunkCountX - 1);
+                    int chunkY = Mathf.Clamp(Mathf.FloorToInt(pos.z / chunkSize), 0, ChunkCountY - 1);
+
+                    ChunkTreesList[chunkX, chunkY].trees.Add(pos);
+
+
+                    if (ChunkTreesList[chunkX, chunkY].trees.Count == 10666) // max quads per mesh (42 664 indices)
+                    {
+                        BuildChunkTrees(ChunkTreesList[chunkX, chunkY]);
+                        ChunkTreesList[chunkX, chunkY].trees.Clear(); // clear quads list for next mesh
+                    }
+                }
+            }
+        }
+
+        for (int x = 0; x < ChunkTreesList.GetLength(0); x++)
+        {
+            for (int y = 0; y < ChunkTreesList.GetLength(1); y++)
+            {
+                BuildChunkTrees(ChunkTreesList[x, y]);
+            }
+        }
+    }
+
+    public float TreeSize = 0.5f;
+    public float TreeRandomizeSize;
+
+    // each tree vertices
+    Vector2 qv0 = new Vector2(-1, -1);
+    Vector2 qv1 = new Vector2(1, -1);
+    Vector2 qv2 = new Vector2(1, 1);
+    Vector2 qv3 = new Vector2(-1, 1);
+
+    // uv frame shift (4 frames per 4 rows in tree texture)
+    const float frameSize = 1.0f / 4.0f;
+
+    // each tree uvs
+    Vector2 uv0 = new Vector2(1, 0);
+    Vector2 uv1 = new Vector2(0, 0);
+    Vector2 uv2 = new Vector2(0, 1);
+    Vector2 uv3 = new Vector2(1, 1);
+
+
+    public void BuildChunkTrees(ChunkTrees ChunkTrees)
+    {
+        //if (ChunkTrees.trees.Count == 0) return;
+        //Debug.Log(ChunkTrees.trees.Count);
+
+        Vector3 tree;
+        Vector3[] verts = new Vector3[ChunkTrees.trees.Count * 4]; // sprite center
+        Vector2[] uvs = new Vector2[ChunkTrees.trees.Count * 4]; // trees uvs
+        Vector2[] uvs2 = new Vector2[ChunkTrees.trees.Count * 4]; // sprite corner
+
+        int[] indices = new int[ChunkTrees.trees.Count * 4]; // quads in mesh
+
+        for (int i = 0; i < ChunkTrees.trees.Count; i++) // fill arrays
+        {
+
+            int ii = i * 4;
+
+            float scale = TreeSize - UnityEngine.Random.value * TreeRandomizeSize;
+
+            // sprite corners
+            uvs2[ii] = qv0 * scale;
+            uvs2[ii + 1] = qv1 * scale;
+            uvs2[ii + 2] = qv2 * scale;
+            uvs2[ii + 3] = qv3 * scale;
+
+            uvs[ii] = uv0;
+            uvs[ii + 1] = uv1;
+            uvs[ii + 2] = uv2;
+            uvs[ii + 3] = uv3;
+
+            indices[ii] = ii;
+            indices[ii + 1] = ii + 1;
+            indices[ii + 2] = ii + 2;
+            indices[ii + 3] = ii + 3;
+
+            // push tree up from groung on it height
+            tree = ChunkTrees.trees[i];
+            tree.y += qv2.y * scale;
+
+            // sprite center position is same for all 4 corners
+            verts[ii] = tree;
+            verts[ii + 1] = tree;
+            verts[ii + 2] = tree;
+            verts[ii + 3] = tree;
+        }
+
+        // creating mesh
+        GameObject trees = new GameObject("Blah");
+
+        MeshFilter mf = trees.AddComponent<MeshFilter>();
+
+        mf.sharedMesh = new Mesh();
+        mf.sharedMesh.vertices = verts;
+
+        mf.sharedMesh.uv = uvs;
+        mf.sharedMesh.uv2 = uvs2;
+
+        mf.sharedMesh.SetIndices(indices, MeshTopology.Quads, 0);
+
+        MeshRenderer mr = trees.AddComponent<MeshRenderer>();
+        mr.sharedMaterial = TreeMaterials[UnityEngine.Random.Range(0, TreeMaterials.Length)];
+
+        //if (castShadows)
+        //    mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        //else
+        //    mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+        trees.AddComponent<TurboForestChunk>();
+        trees.transform.parent = transform;
+    }
+
 }

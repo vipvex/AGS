@@ -88,6 +88,10 @@ public partial class TerrainViewModelBase : ViewModel {
     
     private P<AnimationCurve> _AltitudeTempCurveProperty;
     
+    private ModelCollection<Hex> _WaterHexes;
+    
+    private ModelCollection<Hex> _RiverHexes;
+    
     private Signal<GenerateTerrainCommand> _GenerateTerrain;
     
     private Signal<GenerateChunksCommand> _GenerateChunks;
@@ -728,6 +732,24 @@ public partial class TerrainViewModelBase : ViewModel {
         }
     }
     
+    public virtual ModelCollection<Hex> WaterHexes {
+        get {
+            return _WaterHexes;
+        }
+        set {
+            _WaterHexes = value;
+        }
+    }
+    
+    public virtual ModelCollection<Hex> RiverHexes {
+        get {
+            return _RiverHexes;
+        }
+        set {
+            _RiverHexes = value;
+        }
+    }
+    
     public virtual Signal<GenerateTerrainCommand> GenerateTerrain {
         get {
             return _GenerateTerrain;
@@ -795,6 +817,12 @@ public partial class TerrainViewModelBase : ViewModel {
         _LatitudeTempCurveProperty = new P<AnimationCurve>(this, "LatitudeTempCurve");
         _TerrainTypesListProperty = new P<TerrainTypesList>(this, "TerrainTypesList");
         _AltitudeTempCurveProperty = new P<AnimationCurve>(this, "AltitudeTempCurve");
+    }
+    
+    protected virtual void WaterHexesCollectionChanged(System.Collections.Specialized.NotifyCollectionChangedEventArgs args) {
+    }
+    
+    protected virtual void RiverHexesCollectionChanged(System.Collections.Specialized.NotifyCollectionChangedEventArgs args) {
     }
     
     public override void Read(ISerializerStream stream) {
@@ -940,6 +968,8 @@ public partial class TerrainViewModelBase : ViewModel {
         list.Add(new ViewModelPropertyInfo(_TerrainTypesListProperty, false, false, false, false));
         // PropertiesChildItem
         list.Add(new ViewModelPropertyInfo(_AltitudeTempCurveProperty, false, false, false, false));
+        list.Add(new ViewModelPropertyInfo(_WaterHexes, false, true, false, false));
+        list.Add(new ViewModelPropertyInfo(_RiverHexes, false, true, false, false));
     }
 }
 

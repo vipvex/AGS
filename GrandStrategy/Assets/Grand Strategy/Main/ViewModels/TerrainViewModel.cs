@@ -156,18 +156,18 @@ public partial class TerrainViewModel : TerrainViewModelBase {
     {
         Timer.Start("Adding water pool");
 
-        List<Hex> seaLevelHexes = new List<Hex>();
+        WaterHexes = new ModelCollection<Hex>();
         for (int y = 0; y < Height; y++)
         {
             for (int x = 0; x < Width; x++)
             {
                 if (Hexes[x, y].Elevation < SeaLevel)
                 {
-                    seaLevelHexes.Add(Hexes[x, y]);
+                    WaterHexes.Add(Hexes[x, y]);
                 }
             }   
         }
-        GenerateOcean(seaLevelHexes);
+        GenerateOcean(WaterHexes.ToList());
 
         // Go through all the water tiles in the map
         //List<Hex> scannedHexes = new List<Hex>();
@@ -205,6 +205,15 @@ public partial class TerrainViewModel : TerrainViewModelBase {
         Timer.End();
     }
 
+    public Hex GetRandomOceanTile()
+    {
+        return WaterHexes[UnityEngine.Random.Range(0, WaterHexes.Count)];
+    }
+
+    public Hex GetRandomRiverTile()
+    {
+        return RiverHexes[UnityEngine.Random.Range(0, RiverHexes.Count)];
+    }
 
     public void FlattenHexes(List<Hex> hexes)
     {
@@ -246,49 +255,54 @@ public partial class TerrainViewModel : TerrainViewModelBase {
         int randY;
         int riverCount = 0;
 
-        while(riverCount < RiverFrequency)
+        
+        int mainRivers = 3;
+        int smallerRivers = 5;
+        RiverHexes = new ModelCollection<Hex>();
+
+        while(riverCount < mainRivers)
         {
             randX = UnityEngine.Random.Range(0, Width);
             randY = UnityEngine.Random.Range(0, Height);
 
-            
             if (Hexes[randX, randY].Elevation >= RiverMinHeight)
             {
-                GenerateRiver(Hexes[randX, randY]);
+                GenerateRiver(Hexes[randX, randY], GetRandomOceanTile());
                 riverCount++;
             }
         }
+
+        riverCount = 0;
+
+        while (riverCount < smallerRivers)
+        {
+            randX = UnityEngine.Random.Range(0, Width);
+            randY = UnityEngine.Random.Range(0, Height);
+
+            if (Hexes[randX, randY].Elevation >= RiverMinHeight + 4)
+            {
+                GenerateRiver(Hexes[randX, randY], GetRandomRiverTile());
+                riverCount++;
+            }
+        }
+
+
+        Debug.Log("Revers" + riverCount);
     }
 
-    public void GenerateRiver(Hex hex)
+    public void GenerateRiver(Hex fromHex, Hex toHex)
     {
-        int direction = 0;
 
-        Hex nextHex = hex;
         List<Hex> river = new List<Hex>();
-        river.Add(hex);
 
-        while(nextHex != null)
+        river = Pathfinding.FindPath(fromHex, toHex);
+
+        for (int i = 0; i < river.Count; i++)
         {
-            nextHex = hex.LowestNeighbor();
-
-            // continue moving in the same direction
-            if (nextHex == null){
-       
-                    nextHex = hex.RandomNeighbor();
-        
-            }
-           
-
-            nextHex.TerrainType = TerrainType.River;
-            river.Add(nextHex);
-            direction = hex.neighbors.IndexOf(nextHex);
-
-            hex = nextHex;
-
-            if (river.Count > RiverMaxLength) break;
+            river[i].TerrainType = TerrainType.River;
         }
-        //Debug.Log(river.Count);
+
+        RiverHexes.AddRange(river);
     }
 
     public void AddRivers()

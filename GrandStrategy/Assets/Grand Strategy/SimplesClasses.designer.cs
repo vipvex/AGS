@@ -35,6 +35,10 @@ public class HexBase : object {
     
     private VegetationState _VegetationState;
     
+    private Hex _Parent;
+    
+    private Int32 _MovementPenalty;
+    
     private System.Collections.Generic.List<ResourceViewModel> _Resources;
     
     public Int32 XIndex {
@@ -115,6 +119,24 @@ public class HexBase : object {
         }
         set {
             _VegetationState = value;
+        }
+    }
+    
+    public Hex Parent {
+        get {
+            return _Parent;
+        }
+        set {
+            _Parent = value;
+        }
+    }
+    
+    public Int32 MovementPenalty {
+        get {
+            return _MovementPenalty;
+        }
+        set {
+            _MovementPenalty = value;
         }
     }
     

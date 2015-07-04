@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 2f50b4b96cdccd044bf05ea87a823479
-timeCreated: 1433558086
+timeCreated: 1435970988
 licenseType: Pro
 SubstanceImporter:
   serializedVersion: 5
@@ -92,7 +92,7 @@ SubstanceImporter:
         texture: {instanceID: 0}
     - name: heightmap_blur
       value:
-        scalar[0]: 4
+        scalar[0]: 0
         scalar[1]: 0
         scalar[2]: 0
         scalar[3]: 0
@@ -610,8 +610,8 @@ SubstanceImporter:
     buildTargetSettings:
     - serializedVersion: 2
       buildTarget: 
-      textureWidth: 1024
-      textureHeight: 1024
+      textureWidth: 512
+      textureHeight: 512
       textureFormat: 1
       loadingBehavior: 0
   deletedPrototypes: []

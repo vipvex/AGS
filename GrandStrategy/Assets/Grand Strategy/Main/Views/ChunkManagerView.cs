@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,121 +7,452 @@ using UniRx;
 using UnityEngine;
 
 
+public class Chunk
+{
+    public GameObject Obj;
+    public Texture2D Heightmap;
+    public float[,] Heights;
+    public int Resolution;
+
+    public bool NeedsToUpdate;
+    public bool Busy;
+    public bool MeshReady;
+
+
+    public static int PixelsPerUnit;
+    public static int PixelsToHeight;
+
+
+    // Mesh data
+    public int[] triangles;
+    public Vector3[] vertices;
+    public Vector3[] normals;
+    public Vector2[] uv;
+
+
+    public void GenMeshData()
+    {
+        Busy = true;
+
+        // Pixels per vetex point
+        int res = Resolution;
+
+        int lowerRes = Resolution;
+
+        float resStep = (float)Heights.GetLength(0) / (float)res;
+        float lowerResStep = (float)Heights.GetLength(0) / (float)lowerRes;
+
+        float lowVertPerHighVert = (float)res / (float)lowerRes; // 2 or 1 
+
+
+        float heightmapStep = (float)Heights.GetLength(0) / (float)res;
+        float lowerHeightmapStep = (float)Heights.GetLength(0) / (float)lowerRes;
+        float uvStep = 1f / Heights.GetLength(0);
+
+
+        vertices = new Vector3[(res + 1) * (res + 1)];
+        normals = new Vector3[vertices.Length];
+        uv = new Vector2[vertices.Length];
+
+        float xPos, zPos = 0;
+        float lowX, lowZ;
+        float height = 0;
+
+
+        for (int z = 0, v = 0; z <= res; z++)
+        {
+            for (int x = 0; x <= res; x++, v++)
+            {
+                xPos = Mathf.Clamp(x * resStep / PixelsPerUnit, 0, res * resStep / PixelsPerUnit);
+                zPos = Mathf.Clamp(z * resStep / PixelsPerUnit, 0, res * resStep / PixelsPerUnit);
+
+                lowX = Mathf.Floor(x / lowVertPerHighVert);
+                lowZ = Mathf.Floor(z / lowVertPerHighVert);
+                height = Heights[Mathf.Clamp((int)(x * heightmapStep), 0, Heights.GetLength(0) - 1), Mathf.Clamp((int)(z * heightmapStep), 0, Heights.GetLength(0) - 1)] * (float)PixelsToHeight;
+
+
+                vertices[v] = new Vector3(xPos, height, zPos);
+
+                normals[v] = Vector3.zero;
+                uv[v] = new Vector2(x * resStep * uvStep, z * resStep * uvStep);
+            }
+        }
+
+        triangles = new int[res * res * 6];
+        for (int t = 0, v = 0, y = 0; y < res; y++, v++)
+        {
+            for (int x = 0; x < res; x++, v++, t += 6)
+            {
+                triangles[t] = v;
+                triangles[t + 1] = v + res + 1;
+                triangles[t + 2] = v + 1;
+                triangles[t + 3] = v + 1;
+                triangles[t + 4] = v + res + 1;
+                triangles[t + 5] = v + res + 2;
+            }
+        }
+
+        RecalculateNormals();
+
+        Busy = false;
+        MeshReady = true;
+    }
+
+    private Vector3 a, b, normal;
+
+    public void RecalculateNormals()
+    {
+        for (int i = 0; i < triangles.Length; i += 3)
+        {
+            a = vertices[triangles[i]] - vertices[triangles[i + 1]];
+            b = vertices[triangles[i]] - vertices[triangles[i + 2]];
+
+            normal = Vector3.Cross(a, b);
+            normals[triangles[i]] += normal;
+            normals[triangles[i + 1]] += normal;
+            normals[triangles[i + 2]] += normal;
+
+            normals[triangles[i]].Normalize();
+            normals[triangles[i + 1]].Normalize();
+            normals[triangles[i + 2]].Normalize();
+        }
+    }
+
+}
+
 public class ChunkManagerView : ChunkManagerViewBase
 {
+
+    public bool drawGizmo = true;
+
 
     #region Chunks
 
     public GameObject ChunkPrefab;
-    public float ChunkMeshResolution;
+
+
+    // How many chunks in length can the player see at a time
+    public int ChunkViewRange = 8;
+
+    public Chunk[,] Chunks;
+
+    public int[] ChunksLODs;
+
+    public AnimationCurve CamHeightResCurve;
+
+
     public int ChunkCollisionResolution;
 
-    private GameObject[,] Chunks;
-    private Texture2D[,]  ChunkHeightmaps;
-    private ChunkLOD[,]   ChunkLODs;
 
-    [Space(10)]
-    public int            ChunkViewRange = 8;
-    public AnimationCurve ChunkLODCurve;
-    public int[]          ChunkLODRes;
-    public Color32[]      ChunkLODColors;
+
+    //private GameObject[,] ChunkObjs;
+    //private ChunkLOD[,]   ChunkLODs;
+    //private Texture2D[,]  ChunkHeightmaps;
+
+    
+    //public AnimationCurve ChunkLODCurve;
+    //public Color32[]      ChunkLODColors;
+
+    //public class ChunkLOD
+    //{
+    //    public bool visible;
+    //    public bool needsToUpdate;
+    //    public int resolution;
+    //}
 
     #endregion
 
     #region Trees
 
-    public GameObject TreePrefab;
-    public int ChunkTreeDensity;
+    public int HexTreeDensity;
+    public GameObject TreeChunkPrefab;
 
     #endregion
 
     #region Privates
-    [Space(10)]
-    public bool drawGizmo = true;
 
-    private bool GeneratedTerrain = false;
-    private int ChunkCountX;
-    private int ChunkCountY;
-    
-
-    private RenderTexture renderTexture;
-    private Material material;
-    private Transform camera;
-
-
-    private float ChunkSize;
-    private Vector3 CameraPos;
+    // Camera
+    private Transform  PlayerCamera;
+    private Vector3    CameraPos;
     private Vector2Int CameraChunkIndex;
 
+    // Terrain
+    private bool  GeneratedTerrain = false;
+    private int   ChunkSize;
+    private float ChunkWidth;
+    private int   ChunkCountX;
+    private int   ChunkCountY;
 
 
-    private int[] triangles;
+    // Mesh data
+    private int[]     triangles;
     private Vector3[] vertices;
     private Vector3[] normals;
     private Vector2[] uv;
-#endregion
 
 
-    public class ChunkLOD
-    {
-        public bool visible;
-        public bool needsToUpdate;
-        public int resolution;
-    }
+    // Used for rendering various terrain textures 
+    private Material DrawMaterial;
+    private RenderTexture RenderTexture;
 
+    
+ #endregion
+
+    Thread threadLOD;
 
     public override void Start()
     {
         base.Start();
-        SetupRenderingSettings();
+
+        SetupRenderSettings();
+    }
+
+    private void SetupRenderSettings()
+    {
+        PlayerCamera = Camera.main.transform;
+
+
+        // Make sure substance is using multithreading for optimal performance
+        ProceduralMaterial.substanceProcessorUsage = ProceduralProcessorUsage.All;
+
+
+        DrawMaterial = new Material(Shader.Find("GUI/Text Shader"));
+        DrawMaterial.hideFlags = HideFlags.HideAndDontSave;
+        DrawMaterial.shader.hideFlags = HideFlags.HideAndDontSave;
     }
 
     private void SetupChunkSettings()
     {
-        ChunkLODs = new ChunkLOD[Chunks.GetLength(0), Chunks.GetLength(1)];
+        Chunk.PixelsPerUnit = Terrain.PixelsPerUnit;
+        Chunk.PixelsToHeight = Terrain.PixelsToHeight;
+        ChunkCountX = Terrain.ChunkCountX();
+        ChunkCountY = Terrain.ChunkCountY();
+        ChunkSize =   Terrain.ChunkSize;
+        ChunkWidth =  Terrain.ChunkSize / Terrain.PixelsPerUnit;
 
-        for (int x = 0; x < ChunkLODs.GetLength(0); x++)
+
+        Chunks = new Chunk[ChunkCountX, ChunkCountY];
+
+        for (int x = 0; x < ChunkCountX; x++)
         {
-            for (int y = 0; y < ChunkLODs.GetLength(1); y++)
+            for (int y = 0; y < ChunkCountY; y++)
             {
-                ChunkLODs[x, y] = new ChunkLOD();
+                Chunks[x, y] = new Chunk();
             }
         }
-        ChunkSize = Terrain.ChunkSize / Terrain.PixelsPerUnit;
     }
 
-    private void SetupRenderingSettings()
-    {
-        ProceduralMaterial.substanceProcessorUsage = ProceduralProcessorUsage.All;
-
-        material = new Material(Shader.Find("GUI/Text Shader"));
-        material.hideFlags = HideFlags.HideAndDontSave;
-        material.shader.hideFlags = HideFlags.HideAndDontSave;
-        camera = Camera.main.transform;
-    }
 
     public void FixedUpdate()
     {
+
         if (GeneratedTerrain)
-            UpdateChunkResolutions();
+        {
+            // Update chunks at the phisics interval
+            CalcLods();
+        }
     }
 
     public override void GenerateChunksExecuted(GenerateChunksCommand command)
     {
-        StartCoroutine(GenerateChunkObjects());
+        StartCoroutine(GenerateChunks());
     }
 
-    // Run a loop through all the chunks to set their mesh resolutions
-    private void UpdateChunkResolutions()
+    private IEnumerator GenerateChunks()
     {
-        // Get the index of the chunk that the camera is hovering over
-        CameraPos =        Camera.main.transform.position;
-        CameraChunkIndex = new Vector2Int((int)((int)(CameraPos.x / ChunkSize) * ChunkSize / ChunkSize), 
-                                          (int)((int)(CameraPos.z / ChunkSize) * ChunkSize / ChunkSize));
+        SetupChunkSettings();
+        
+        Vector3 ChunkPos;
 
-        int newRes = 0, ChunkIndexX = 0, ChunkIndexY = 0;
+        for (int x = 0; x < ChunkCountX; x++)
+        {
+            for (int y = 0; y < ChunkCountY; y++)
+            {
+                ChunkPos = Terrain.ChunkWorldPos(x, y);
 
 
+                Chunks[x, y].Obj = InstantiateView(ChunkPrefab, Terrain.Chunks[x, y], ChunkPos, Quaternion.identity).gameObject;
+                Chunks[x, y].Obj.name = "Chunk (" + x + ", " + y + ")";
+
+
+                UpdateChunkTextures(Chunks[x, y].Obj, x, y);
+                UpdateChunkCollisionMesh(x, y);
+
+                yield return null;
+            }
+        }
+
+        GeneratedTerrain = true;
+        GenerateTrees();
+
+        //Timer.Print();
+
+        yield return null;
+    }
+
+    List<Thread> threadList = new List<Thread>();
+
+
+    public void CalcLods()
+    {
+        CameraChunkIndex = new Vector2Int((int)(Mathf.Round((PlayerCamera.transform.position.x - ChunkWidth / 2) / ChunkWidth) * ChunkWidth / ChunkWidth),
+                                     (int)(Mathf.Round((PlayerCamera.transform.position.z - ChunkWidth / 2) / ChunkWidth) * ChunkWidth / ChunkWidth));
+
+
+        for (int x = -ChunkViewRange; x < ChunkViewRange; x++)
+        {
+            for (int y = -ChunkViewRange; y < ChunkViewRange; y++)
+            {
+                ChunkIndexX = x + CameraChunkIndex.x;
+                ChunkIndexY = y + CameraChunkIndex.y;
+
+                // if the chunk view is out of the bounds of the world
+                if (ChunkIndexX >= ChunkCountX || ChunkIndexY >= ChunkCountY || ChunkIndexX < 0 || ChunkIndexY < 0)
+                {
+                    continue;
+                }
+
+                // Logic starts
+
+                // Build chunk if mesh is ready
+                if (Chunks[ChunkIndexX, ChunkIndexY].MeshReady)
+                {
+                    // if the mesh is ready this means that the thread is finished 
+                    ThreadCount -= 1;
+
+                    BuildChunkMesh(ChunkIndexX, ChunkIndexY);
+
+                    Chunks[ChunkIndexX, ChunkIndexY].MeshReady = false;
+                }
+
+                // Resolution based on distance
+                Resolution = LODRings[(int)Mathf.Clamp(Vector2.Distance(new Vector2(ChunkIndexX, ChunkIndexY), new Vector2(CameraChunkIndex.x, CameraChunkIndex.y)), 0, LODRings.Length - 1)];
+
+                // If the chunk resolution hasen't been updated
+                if (Chunks[ChunkIndexX, ChunkIndexY].Resolution != Resolution && !Chunks[ChunkIndexX, ChunkIndexY].Busy && ThreadCount < ThreadCountMax)
+                {
+                    // Chunk mesh should build based on its heights
+                    // Mesh should take into account it's neighbors
+
+                    Chunks[ChunkIndexX, ChunkIndexY].Resolution = Resolution;
+                    
+                    ThreadCount += 1;
+
+                    threadList.Add(new Thread(Chunks[ChunkIndexX, ChunkIndexY].GenMeshData));
+                }
+            }
+        }
+
+        //if (threadLOD != null && !threadLOD.IsAlive)
+        //    threadLOD.Start();  
+
+        for (int i = 0; i < threadList.Count; i++)
+        {
+            threadList[i].Start();
+        }
+
+        threadList.Clear();
+    }
+
+    private void BuildChunkMesh(int X, int Y)
+    {
+        Mesh mesh = Chunks[X, Y].Obj.GetComponent<MeshFilter>().mesh;
+        mesh.Clear();
+
+        mesh.vertices = Chunks[X, Y].vertices;
+        mesh.uv = Chunks[X, Y].uv;
+        mesh.triangles = Chunks[X, Y].triangles;
+        mesh.normals = Chunks[X, Y].normals;
+    }
+
+
+
+    public int[] LODRings;
+    public int ThreadCount    = 0;
+    public int ThreadCountMax = 5;
+    int ChunkIndexX, ChunkIndexY, Resolution, UpdatedChunks;
+
+    // Run a loop through all the chunks to set their mesh resolutions
+    private void UpdateChunkLODs()
+    {
+        // Get the index of the chunk that the PlayerCamera is hovering over
+        CameraChunkIndex = new Vector2Int((int)(Mathf.Round((PlayerCamera.transform.position.x - ChunkWidth / 2) / ChunkWidth) * ChunkWidth / ChunkWidth),
+                                          (int)(Mathf.Round((PlayerCamera.transform.position.z - ChunkWidth / 2) / ChunkWidth) * ChunkWidth / ChunkWidth));
+
+
+        UpdatedChunks = 0;
+
+        // ring loop
+            // chunk loop
+
+        for (int x = -ChunkViewRange; x < ChunkViewRange; x++)
+        {
+            for (int y = -ChunkViewRange; y < ChunkViewRange; y++)
+            {
+                ChunkIndexX = x + CameraChunkIndex.x;
+                ChunkIndexY = y + CameraChunkIndex.y;
+
+                // if the chunk view is out of the bounds of the world
+                if (ChunkIndexX >= ChunkCountX || ChunkIndexY >= ChunkCountY || ChunkIndexX < 0 || ChunkIndexY < 0)
+                {
+                    continue;
+                }
+
+                Resolution = (int)Vector2.Distance(new Vector2(ChunkIndexX, ChunkIndexY), new Vector2(CameraChunkIndex.x, CameraChunkIndex.y));
+
+                //// the four chunks near the camera
+                //if ((CameraChunkIndex.x <= ChunkIndexX && CameraChunkIndex.x >= ChunkIndexX - 1) ||
+                //    (CameraChunkIndex.x <= ChunkIndexY && CameraChunkIndex.x >= ChunkIndexY - 1))
+                //{
+                //    Resolution -= Mathf.RoundToInt(CamHeightResCurve.Evaluate(PlayerCamera.transform.position.y));
+                //}
+
+                if (CameraChunkIndex.x == ChunkIndexX && CameraChunkIndex.y == ChunkIndexY)
+                {
+                    //  Resolution += 1;
+                }
+
+                Resolution = Mathf.Clamp(Resolution, 0, LODRings.Length - 1);
+
+
+                //if (ThreadCount < ThreadCountMax && Resolution != Chunks[ChunkIndexX, ChunkIndexY].Resolution &&
+                //    Chunks[ChunkIndexX, ChunkIndexY].NeedsToUpdate == false && Chunks[ChunkIndexX, ChunkIndexY].BuildingMesh == false)
+                //{
+                //    Chunks[ChunkIndexX, ChunkIndexY].NeedsToUpdate = true;
+                //}
+                //
+                //if (Chunks[ChunkIndexX, ChunkIndexY].MeshReady == true)
+                //{
+                //    Debug.Log("building mesh");
+                //    BuildChunkMesh(ChunkIndexX, ChunkIndexY);
+                //    Chunks[ChunkIndexX, ChunkIndexY].NeedsToUpdate = false;
+                //    Chunks[ChunkIndexX, ChunkIndexY].BuildingMesh = false;
+                //    Chunks[ChunkIndexX, ChunkIndexY].MeshReady = false;
+                //    Chunks[ChunkIndexX, ChunkIndexY].Resolution = Resolution;
+                //}
+
+            }  
+        }
+
+        //for (int x = 0; x < Chunks.GetLength(0); x++)
+        //{
+        //    for (int y = 0; y < Chunks.GetLength(1); y++)
+        //    {
+        //        if (ThreadCount < ThreadCountMax &&
+        //            Chunks[x, y].NeedsToUpdate == true &&
+        //            Chunks[x, y].BuildingMesh == false)
+        //        {
+        //            ThreadCount += 1;
+        //
+        //            new Thread(Chunks[x, y].CalcMesh).Start();
+        //        }
+        //    }
+        //
+        //}
+
+        //Timer.Print();
+
+        /*
         for (int x = -ChunkViewRange; x < ChunkViewRange; x++)
         {
             for (int y = -ChunkViewRange; y < ChunkViewRange; y++)
@@ -228,121 +560,148 @@ public class ChunkManagerView : ChunkManagerViewBase
         }*/
     }
 
-    void OnDrawGizmos()
+    void DoStuff()
     {
-        if (!drawGizmo || (Terrain == null || Terrain.Chunks == null)) return;
-
-        //Mesh mesh = null;
-        //
-        //for (int x = 0; x < 1; x++)
-        //{
-        //    for (int y = 0; y < 1; y++)
-        //    {
-        //        mesh = Chunks[x, y].GetComponent<MeshFilter>().mesh;
-        //
-        //        for (int i = 0; i < mesh.normals.Length; i++)
-        //        {
-        //            Gizmos.DrawRay(mesh.vertices[i], mesh.normals[i]);
-        //        }
-        //    }
-        //}
-
-
-        //float ChunkSize = Terrain.ChunkSize / Terrain.PixelsPerUnit;
-        //
-        //Vector3 cameraPos = Camera.main.transform.position;
-        //Vector3 cameraChunkPos = new Vector3((int)(cameraPos.x / ChunkSize) * ChunkSize, 0, (int)(cameraPos.z / ChunkSize) * ChunkSize);
-        //Vector2Int cameraIndex = new Vector2Int((int)(cameraChunkPos.x / ChunkSize), (int)(cameraChunkPos.z / ChunkSize));
-        //
-        //List<Vector2Int> visibleChunks = new List<Vector2Int>();
-        //visibleChunks.Add(cameraIndex);
-        //for (int x = -ChunkViewRange; x < ChunkViewRange + 1; x++)
-        //{
-        //    for (int y = -ChunkViewRange; y < ChunkViewRange + 1; y++)
-        //    {        
-        //        visibleChunks.Add(new Vector2Int(cameraIndex.x + x, cameraIndex.y + y));
-        //    }
-        //}
-        //
-        //
-        //Gizmos.color = Color.blue;
-        //for (int x = 0; x < Terrain.Chunks.GetLength(0); x++)
-        //{
-        //    for (int y = 0; y < Terrain.Chunks.GetLength(1); y++)
-        //    {
-        //        if (visibleChunks.Contains(new Vector2Int(x, y)))
-        //        {
-        //            Gizmos.color = (Color)ChunkLODColors[(int)ChunkLODCurve.Evaluate(Vector3.Distance(Terrain.ChunkCenterWorldPos(x, y), cameraPos))];
-        //            
-        //        }else{
-        //            Gizmos.color = Color.blue;
-        //        }
-        //        
-        //        Gizmos.DrawWireCube(Terrain.ChunkCenterWorldPos(x, y) + ((Vector3.up * Terrain.PixelsToHeight) / 2), Terrain.ChunkWorldSize() - Vector3.one * 0.05f);
-        //    }
-        //}
+        Debug.Log("Doing stuff");
     }
 
+  
 
-    private IEnumerator GenerateChunkObjects()
+    private void UpdateChunkMeshData(int ChunkX, int ChunkY, int resIndex, bool lowerTop, bool lowerBottom, bool lowerRight, bool lowerLeft)
     {
+        Debug.Log("Updating chunk " + ChunkX + ", " + ChunkY);
 
-        Vector3 chunkPos;
-        Chunks = new GameObject[Terrain.Chunks.GetLength(0), Terrain.Chunks.GetLength(1)];
-        ChunkHeightmaps = new Texture2D[Terrain.Chunks.GetLength(0), Terrain.Chunks.GetLength(1)];
 
-        for (int x = 0; x < Terrain.Chunks.GetLength(0); x++)
+        lock (Chunks[ChunkX, ChunkY])
         {
-            for (int y = 0; y < Terrain.Chunks.GetLength(1); y++)
+            
+            Debug.Log("Trying");
+
+            // Pixels per vetex point
+            int res = 0; //LODRings[resIndex];
+            Debug.Log("Got ring");
+
+            int lowerRes = 0; // LODRings[Mathf.Clamp(resIndex + 1, 0, LODRings.Length - 1)];
+
+            float resStep = (float)ChunkSize / (float)res;
+            float lowerResStep = (float)ChunkSize / (float)lowerRes;
+
+            float lowVertPerHighVert = (float)res / (float)lowerRes; // 2 or 1 
+
+
+            float heightmapStep = (float)ChunkSize / (float)res;
+            float lowerHeightmapStep = (float)ChunkSize / (float)lowerRes;
+            float uvStep = 1f / ChunkSize;
+
+
+            vertices = new Vector3[(res + 1) * (res + 1)];
+            normals = new Vector3[vertices.Length];
+            uv = new Vector2[vertices.Length];
+
+            float xPos, zPos = 0;
+            float lowX, lowZ, leftXHeight, rightXHeight, topZHeight, botZHeight, lowXFloat, lowZFloat, difference, increment = 0;
+            float height = 0;
+
+
+            for (int z = 0, v = 0; z <= res; z++)
             {
+                for (int x = 0; x <= res; x++, v++)
+                {
+                    Debug.Log("Doing loopp");
 
-                chunkPos = Terrain.ChunkWorldPos(x, y);
+                    xPos = Mathf.Clamp(x * resStep / Terrain.PixelsPerUnit, 0, res * resStep / Terrain.PixelsPerUnit);
+                    zPos = Mathf.Clamp(z * resStep / Terrain.PixelsPerUnit, 0, res * resStep / Terrain.PixelsPerUnit);
+
+                    Debug.Log(Chunks[ChunkX, ChunkY]);
+                    Debug.Log("Break");
+
+                    lowX = Mathf.Floor(x / lowVertPerHighVert);
+                    lowZ = Mathf.Floor(z / lowVertPerHighVert);
+                    height = Chunks[ChunkX, ChunkY].Heights[Mathf.Clamp((int)(x * heightmapStep), 0, ChunkSize - 1), Mathf.Clamp((int)(z * heightmapStep), 0, ChunkSize - 1)] * (float)Terrain.PixelsToHeight;
 
 
-                Chunks[x, y] = InstantiateView(ChunkPrefab, Terrain.Chunks[x, y], chunkPos, Quaternion.identity).gameObject;
-                Chunks[x, y].name = "Chunk [" + x + ", " + y + "]";
-                
-                UpdateChunkTextures(Chunks[x, y], x, y);
-                UpdateChunkCollisionMesh(x, y);
-                
+                    vertices[v] = new Vector3(xPos, height, zPos);
 
-                yield return null;
+                    normals[v] = Vector3.zero;
+                    uv[v] = new Vector2(x * resStep * uvStep, z * resStep * uvStep);
+                }
+            }
+
+            Debug.Log("Finished verts   ");
+
+
+            triangles = new int[res * res * 6];
+            for (int t = 0, v = 0, y = 0; y < res; y++, v++)
+            {
+                for (int x = 0; x < res; x++, v++, t += 6)
+                {
+                    triangles[t] = v;
+                    triangles[t + 1] = v + res + 1;
+                    triangles[t + 2] = v + 1;
+                    triangles[t + 3] = v + 1;
+                    triangles[t + 4] = v + res + 1;
+                    triangles[t + 5] = v + res + 2;
+                }
             }
 
         }
 
-        GeneratedTerrain = true;
-        ChunkCountX = Terrain.Chunks.GetLength(0) - 1;
-        ChunkCountY = Terrain.Chunks.GetLength(1) - 1;
-        SetupChunkSettings();
-        GenerateTrees();
-
-        //StitchChunks();
-        //GenerateVegetation();
-        yield return null;
+        //TangentSolver.Solve(mesh);
+        //mesh.RecalculateBounds();
+        //mesh.Optimize();
+        //Timer.End();
     }
+
+
+    private Color32[] pixels;
+    int rows;
 
     private void UpdateChunkTextures(GameObject chunk, int x, int y)
     {
         // generate chunk heightmap and add to array
-        // set material textures based on (generate biome map, heightmap)
+        // set DrawMaterial textures based on (generate biome map, heightmap)
 
         // Texture generation
-        ProceduralMaterial substance = Chunks[x, y].GetComponent<Renderer>().material as ProceduralMaterial;
+        ProceduralMaterial substance = Chunks[x, y].Obj.GetComponent<Renderer>().material as ProceduralMaterial;
         substance.isReadable = true;
 
-        // Give the substance material the appropriate textures and let it process them
+        // Give the substance DrawMaterial the appropriate textures and let it process them
+
         substance.SetProceduralTexture("biome_mask", DrawChunkBiomemap(x, y));
+
         substance.SetProceduralTexture("heightmap", DrawChunkHeightmap(x, y));
+
+        Timer.Start("Generating substnace textures " + x + ", " + y);
         substance.RebuildTexturesImmediately();
+        Timer.End();
+
+        Timer.Start("Seetting pixel setting " + x + ", " + y);
 
         // Retrieve the processed heightmap procedural texture
         ProceduralTexture substanceTexture = substance.GetGeneratedTexture("terrain_heightmap");
 
+        pixels = substanceTexture.GetPixels32(0, 0, substanceTexture.width, substanceTexture.height);
+
         // Convert it to a readable Texture2D format
-        ChunkHeightmaps[x, y] = new Texture2D(substanceTexture.width, substanceTexture.height, TextureFormat.ARGB32, false);
-        ChunkHeightmaps[x, y].SetPixels32(substanceTexture.GetPixels32(0, 0, substanceTexture.width, substanceTexture.height));
-        ChunkHeightmaps[x, y].wrapMode = TextureWrapMode.Clamp;
+        //Chunks[x, y].Heightmap = new Texture2D(substanceTexture.width, substanceTexture.height, TextureFormat.ARGB32, false);
+        //Chunks[x, y].Heightmap.SetPixels32(pixels);
+        //Chunks[x, y].Heightmap.wrapMode = TextureWrapMode.Clamp;
+
+        Chunks[x, y].Heights = new float[substanceTexture.width, substanceTexture.height];
+
+
+        rows = -1;
+        for (int i = 0; i < pixels.Length ; i++)
+        {
+            //Debug.Log(rows);
+            //if (rows >= substanceTexture.width) Debug.Log(rows);
+
+            if (i % substanceTexture.width == 0) rows++;
+
+            Chunks[x, y].Heights[i % substanceTexture.height, rows] = ((Color)pixels[i]).grayscale;
+        }
+
+
         //substanceTexture2D.Apply();
 
         // Make sure the generated textures are not tielable (causes texture issues)
@@ -350,15 +709,17 @@ public class ChunkManagerView : ChunkManagerViewBase
         {
             substance.GetGeneratedTexture(substance.GetGeneratedTextures()[i].name).wrapMode = TextureWrapMode.Clamp;
         }
+
+        Timer.End();
     }
 
 
     private Texture2D DrawChunkHeightmap(int ChunkX, int ChunkY)
     {
+        Timer.Start("Generating heightmap " + ChunkX + ", " + ChunkY);
+
         int dataX = Mathf.Clamp(ChunkX * Terrain.ChunkHexCountX - 1, 0, 10000);
         int dataY = Mathf.Clamp(ChunkY * Terrain.ChunkHexCountY - 1, 0, 10000);
-
-        int ChunkSize = Terrain.ChunkSize;
 
         int posX, posY;
 
@@ -367,16 +728,16 @@ public class ChunkManagerView : ChunkManagerViewBase
 
 
         // get a temporary RenderTexture //
-        renderTexture = RenderTexture.GetTemporary(ChunkSize, ChunkSize);
+        RenderTexture = RenderTexture.GetTemporary(ChunkSize, ChunkSize);
 
         // set the RenderTexture as global target (that means GL too)
-        RenderTexture.active = renderTexture;
+        RenderTexture.active = RenderTexture;
 
         // clear GL //
         GL.Clear(false, true, Color.black);
 
         // render GL immediately to the active render texture //
-        material.SetPass(0);
+        DrawMaterial.SetPass(0);
         GL.PushMatrix();
         GL.LoadPixelMatrix(0, ChunkSize, ChunkSize, 0);
 
@@ -427,17 +788,82 @@ public class ChunkManagerView : ChunkManagerViewBase
 
         // clean up after the party //
         //RenderTexture.active = null;
-        //RenderTexture.ReleaseTemporary(renderTexture);
+        //RenderTexture.ReleaseTemporary(RenderTexture);
+
+        Timer.End();
 
         return newTexture;
     }
 
+
+
+    /* top seam
+    if (z == res && ChunkY + 1 < ChunkCountY)
+    {
+        if (lowerTop == false)
+        {
+            height = Chunks[ChunkX, Mathf.Clamp(ChunkY + 1, 0, ChunkCountY)].Heightmap.GetPixel((int)(x * heightmapStep), 0).grayscale * (float)Terrain.PixelsToHeight; // (height + 
+        }
+        else
+        {
+            leftXHeight = Chunks[ChunkX, ChunkY + 1].Heightmap.GetPixel((int)(lowX * lowerHeightmapStep), 0).grayscale;
+            rightXHeight = Chunks[ChunkX, ChunkY + 1].Heightmap.GetPixel((int)((lowX + 1) * lowerHeightmapStep), 0).grayscale;
+
+            lowXFloat = x / ((float)res / (float)lowerRes);
+            difference = rightXHeight - leftXHeight;
+            increment = ((lowXFloat - (float)lowX)) / 1f;
+
+            height = (leftXHeight + (difference * increment)) * (float)Terrain.PixelsToHeight;
+        }
+    }
+
+    // bottom seam
+    //if (z == 0 && ChunkY <= ChunkCountY)
+    //{
+    //    if (lowerBottom == false)
+    //    {
+    //        height = ChunkHeightmaps[ChunkX, Mathf.Clamp(ChunkY + 1, 0, Terrain.Chunks.GetLength(1) - 1)].GetPixel((int)(x * heightmapStep), -1).grayscale * (float)Terrain.PixelsToHeight; // (height + 
+    //    }
+    //    else
+    //    {
+    //        leftXHeight = ChunkHeightmaps[ChunkX, ChunkY - 1].GetPixel((int)(lowX * lowerHeightmapStep), -1).grayscale;
+    //        rightXHeight = ChunkHeightmaps[ChunkX, ChunkY - 1].GetPixel((int)((lowX + 1) * lowerHeightmapStep), -1).grayscale;
+    //
+    //        lowXFloat = x / ((float)res / (float)lowerRes);
+    //        difference = rightXHeight - leftXHeight;
+    //        increment = ((lowXFloat - (float)lowX)) / 1f;
+    //
+    //        height = (leftXHeight + (difference * increment)) * (float)Terrain.PixelsToHeight;
+    //    }
+    //}
+
+    // right seam
+    if (x == res && ChunkX + 1 < ChunkCountX)
+    {
+        if (lowerRight == false)
+        {
+            height = Chunks[Mathf.Clamp(ChunkX + 1, 0, ChunkCountX), ChunkY].Heightmap.GetPixel(0, (int)(z * heightmapStep)).grayscale * (float)Terrain.PixelsToHeight;
+        }
+        else
+        {
+            topZHeight = Chunks[ChunkX + 1, ChunkY].Heightmap.GetPixel(0, (int)(lowZ * lowerHeightmapStep)).grayscale;
+            botZHeight = Chunks[ChunkX + 1, ChunkY].Heightmap.GetPixel(0, (int)((lowZ + 1) * lowerHeightmapStep)).grayscale;
+
+            lowZFloat = z / ((float)res / (float)lowerRes);
+            difference = botZHeight - topZHeight;
+            increment = ((lowZFloat - (float)lowZ)) / 1f;
+
+            height = (topZHeight + (difference * increment)) * (float)Terrain.PixelsToHeight;
+        }
+    }*/
+
     private Texture2D DrawChunkBiomemap(int ChunkX, int ChunkY)
     {
+        Timer.Start("Generating biomemap " + ChunkX + ", " + ChunkY);
+
+
         int dataX = Mathf.Clamp(ChunkX * Terrain.ChunkHexCountX - 1, 0, 10000);
         int dataY = Mathf.Clamp(ChunkY * Terrain.ChunkHexCountY - 1, 0, 10000);
-
-        int ChunkSize = Terrain.ChunkSize;
 
         int posX, posY;
 
@@ -446,16 +872,16 @@ public class ChunkManagerView : ChunkManagerViewBase
 
 
         // get a temporary RenderTexture //
-        renderTexture = RenderTexture.GetTemporary(ChunkSize, ChunkSize);
+        RenderTexture = RenderTexture.GetTemporary(ChunkSize, ChunkSize);
 
         // set the RenderTexture as global target (that means GL too)
-        RenderTexture.active = renderTexture;
+        RenderTexture.active = RenderTexture;
 
         // clear GL //
         GL.Clear(false, true, Color.black);
 
         // render GL immediately to the active render texture //
-        material.SetPass(0);
+        DrawMaterial.SetPass(0);
         GL.PushMatrix();
         GL.LoadPixelMatrix(0, ChunkSize, ChunkSize, 0);
 
@@ -470,28 +896,9 @@ public class ChunkManagerView : ChunkManagerViewBase
                 posX = Mathf.RoundToInt(x * 2 * HexProperties.tileR + (y % 2 == 0 ? 0 : 1) * HexProperties.tileR + HexProperties.tileR) - chunkTextureOffsetX;
                 posY = ChunkSize - (Mathf.RoundToInt(y * (HexProperties.tileH + HexProperties.side) + HexProperties.side) - chunkTextureOffsetY);
 
-                //GL.Color(new Color((float)Terrain.Hexes[x, y].Elevation / Terrain.Elevations, (float)Terrain.Hexes[x, y].Elevation / Terrain.Elevations, (float)Terrain.Hexes[x, y].Elevation / Terrain.Elevations));
-                //GL.Color(Color.blue);
-                //if (TerrainManager.hexGrid[x, y].height == TerrainManager.Altitudes)
-                //{
-                //    GL.Color(Color.white);
-                //    TerrainManager.hexGrid[x, y].terrainType = TerrainType.Arctic;
-                //    break;
-                //}
-
-                //for (int i = 0; i < biomes.Length; i++)
-                //{
-                //    if (TerrainManager.hexGrid[x, y].Temperature >= biomes[i].minTemp && TerrainManager.hexGrid[x, y].Humidity >= biomes[i].minHum)
-                //    {
-                //        TerrainManager.hexGrid[x, y].terrainType = (TerrainType)(i);
-                //        GL.Color(new Color(biomes[i].color.r, biomes[i].color.g, biomes[i].color.b)); //  * (1 - 0.3f * (1 - TerrainManager.hexGrid[x, y].height / 6f))
-                //        break;
-                //    }
-                //}
-
-                //Debug.Log(this.Terrain.TerrainTypesList.TerrainTypes[(int)this.Terrain.Hexes[x, y].TerrainType].Color);
-                GL.Color(new Color(this.Terrain.TerrainTypesList.TerrainTypes[(int)this.Terrain.Hexes[x, y].TerrainType].Color.r, this.Terrain.TerrainTypesList.TerrainTypes[(int)this.Terrain.Hexes[x, y].TerrainType].Color.g, this.Terrain.TerrainTypesList.TerrainTypes[(int)this.Terrain.Hexes[x, y].TerrainType].Color.b));
-                //GL.Color(Color.blue);
+                GL.Color(new Color(Terrain.TerrainTypesList.TerrainTypes[(int)Terrain.Hexes[x, y].TerrainType].Color.r, 
+                                   Terrain.TerrainTypesList.TerrainTypes[(int)Terrain.Hexes[x, y].TerrainType].Color.g, 
+                                   Terrain.TerrainTypesList.TerrainTypes[(int)Terrain.Hexes[x, y].TerrainType].Color.b));
 
                 GL.Vertex3(posX + HexProperties.vertPos[0].x, posY + HexProperties.vertPos[0].y, 0);
                 GL.Vertex3(posX + HexProperties.vertPos[1].x, posY + HexProperties.vertPos[1].y, 0);
@@ -527,166 +934,11 @@ public class ChunkManagerView : ChunkManagerViewBase
 
         // clean up after the party //
         //RenderTexture.active = null;
-        //RenderTexture.ReleaseTemporary(renderTexture);
+        //RenderTexture.ReleaseTemporary(RenderTexture);
+
+        Timer.End();
 
         return newTexture;
-    }
-
-    private void UpdateChunkMesh(int ChunkX, int ChunkY, int resIndex, bool lowerTop, bool lowerBottom, bool lowerRight, bool lowerLeft)
-    {
-        Mesh mesh = Chunks[ChunkX, ChunkY].GetComponent<MeshFilter>().mesh;
-        mesh.Clear();
-
-        // Pixels per vetex point
-        int res = ChunkLODRes[resIndex];
-        int lowerRes = ChunkLODRes[Mathf.Clamp(resIndex + 1, 0, (int)ChunkLODRes.Length)];
-
-        float resStep = (float)Terrain.ChunkSize / (float)res;
-        float lowerResStep = (float)Terrain.ChunkSize / (float)lowerRes;
-
-        float lowVertPerHighVert = (float)res / (float)lowerRes; // 2 or 1 
-
-
-        float heightmapStep = (float)ChunkHeightmaps[ChunkX, ChunkY].width / res;
-        float lowerHeightmapStep = (float)ChunkHeightmaps[ChunkX, ChunkY].width / (float)lowerRes;
-        float uvStep = 1f / Terrain.ChunkSize;
-
-
-        vertices = new Vector3[(res + 1) * (res + 1)];
-        normals = new Vector3[vertices.Length];
-        uv = new Vector2[vertices.Length];
-
-        float xPos, zPos = 0;
-        float lowX, lowZ, leftXHeight, rightXHeight, topZHeight, botZHeight, lowXFloat, lowZFloat, difference, increment = 0;
-        float height = 0;
-        for (int z = 0, v = 0; z <= res; z++)
-        {
-            for (int x = 0; x <= res; x++, v++)
-            {
-                xPos = Mathf.Clamp(x * resStep / Terrain.PixelsPerUnit, 0, res * resStep / Terrain.PixelsPerUnit);
-                zPos = Mathf.Clamp(z * resStep / Terrain.PixelsPerUnit, 0, res * resStep / Terrain.PixelsPerUnit);
-
-                lowX = Mathf.Floor(x / lowVertPerHighVert);
-                lowZ = Mathf.Floor(z / lowVertPerHighVert);
-                height = ChunkHeightmaps[ChunkX, ChunkY].GetPixel((int)(x * heightmapStep), (int)(z * heightmapStep)).grayscale * (float)Terrain.PixelsToHeight;
-
-                // top seam
-                if (z == res && ChunkY + 1 <= ChunkCountY)
-                {
-                    if (lowerTop == false)
-                    {
-                        height = ChunkHeightmaps[ChunkX, Mathf.Clamp(ChunkY + 1, 0, ChunkCountY)].GetPixel((int)(x * heightmapStep), 0).grayscale * (float)Terrain.PixelsToHeight; // (height + 
-                    }
-                    else
-                    {
-                        leftXHeight = ChunkHeightmaps[ChunkX, ChunkY + 1].GetPixel((int)(lowX * lowerHeightmapStep), 0).grayscale;
-                        rightXHeight = ChunkHeightmaps[ChunkX, ChunkY + 1].GetPixel((int)((lowX + 1) * lowerHeightmapStep), 0).grayscale;
-
-                        lowXFloat = x / ((float)res / (float)lowerRes);
-                        difference = rightXHeight - leftXHeight;
-                        increment = ((lowXFloat - (float)lowX)) / 1f;
-
-                        height = (leftXHeight + (difference * increment)) * (float)Terrain.PixelsToHeight;
-                    }
-                }
-
-                // bottom seam
-                //if (z == 0 && ChunkY <= ChunkCountY)
-                //{
-                //    if (lowerBottom == false)
-                //    {
-                //        height = ChunkHeightmaps[ChunkX, Mathf.Clamp(ChunkY + 1, 0, Terrain.Chunks.GetLength(1) - 1)].GetPixel((int)(x * heightmapStep), -1).grayscale * (float)Terrain.PixelsToHeight; // (height + 
-                //    }
-                //    else
-                //    {
-                //        leftXHeight = ChunkHeightmaps[ChunkX, ChunkY - 1].GetPixel((int)(lowX * lowerHeightmapStep), -1).grayscale;
-                //        rightXHeight = ChunkHeightmaps[ChunkX, ChunkY - 1].GetPixel((int)((lowX + 1) * lowerHeightmapStep), -1).grayscale;
-                //
-                //        lowXFloat = x / ((float)res / (float)lowerRes);
-                //        difference = rightXHeight - leftXHeight;
-                //        increment = ((lowXFloat - (float)lowX)) / 1f;
-                //
-                //        height = (leftXHeight + (difference * increment)) * (float)Terrain.PixelsToHeight;
-                //    }
-                //}
-
-                // right seam
-                if (x == res && ChunkX + 1 <= ChunkCountX)
-                {
-                    if (lowerRight == false)
-                    {
-                        height = ChunkHeightmaps[Mathf.Clamp(ChunkX + 1, 0, ChunkCountX), ChunkY].GetPixel(0, (int)(z * heightmapStep)).grayscale * (float)Terrain.PixelsToHeight;
-                    }
-                    else
-                    {
-                        topZHeight = ChunkHeightmaps[ChunkX + 1, ChunkY].GetPixel(0, (int)(lowZ * lowerHeightmapStep)).grayscale;
-                        botZHeight = ChunkHeightmaps[ChunkX + 1, ChunkY].GetPixel(0, (int)((lowZ + 1) * lowerHeightmapStep)).grayscale;
-
-                        lowZFloat = z / ((float)res / (float)lowerRes);
-                        difference = botZHeight - topZHeight;
-                        increment = ((lowZFloat - (float)lowZ)) / 1f;
-
-                        height = (topZHeight + (difference * increment)) * (float)Terrain.PixelsToHeight;
-                    }
-                }
-
-                vertices[v] = new Vector3(xPos,
-                                          height,
-                                          zPos);
-
-                normals[v] = Vector3.zero;
-                uv[v] = new Vector2(x * resStep * uvStep, z * resStep * uvStep);
-            }
-        }
-
-
-
-        triangles = new int[res * res * 6];
-        for (int t = 0, v = 0, y = 0; y < res; y++, v++)
-        {
-            for (int x = 0; x < res; x++, v++, t += 6)
-            {
-                triangles[t] = v;
-                triangles[t + 1] = v + res + 1;
-                triangles[t + 2] = v + 1;
-                triangles[t + 3] = v + 1;
-                triangles[t + 4] = v + res + 1;
-                triangles[t + 5] = v + res + 2;
-            }
-        }
-
-        mesh.vertices = vertices;
-        mesh.uv = uv;
-        mesh.triangles = triangles;
-
-
-        //CalculateNormals(res);
-
-
-
-        mesh.normals = normals;
-       
-        mesh.normals = RecalculateNormals2(); //
-        //mesh.RecalculateNormals();
-        //NormalSolver.RecalculateNormals(mesh, 20);
-        //mesh.RecalculateBounds();
-
-        //TangentSolver.Solve(mesh);
-
-
-        //mesh.Optimize();
-
-
-        //CalculateNormals(res);
-
-        //TangentSolver.Solve(mesh);
-        //mesh.normals = normals;     
-        //
-        //mesh.triangles = triangles;
-        
-        //TangentSolver.Solve(mesh);
-        
-        //mesh.Optimize();
     }
 
 
@@ -702,9 +954,9 @@ public class ChunkManagerView : ChunkManagerViewBase
         vertices = new Vector3[(ChunkCollisionResolution + 1) * (ChunkCollisionResolution + 1)];
 
         // Pixels per vetex point
-        //float resStep = ChunkSize / ChunkCollisionResolution;
-        float resStep = (float)Terrain.ChunkSize / (float)ChunkCollisionResolution;
-        float heightmapStep = (float)ChunkHeightmaps[ChunkX, ChunkY].width / (float)ChunkCollisionResolution;
+        //float resStep = ChunkWidth / ChunkCollisionResolution;
+        float resStep = (float)ChunkSize / (float)ChunkCollisionResolution;
+        float heightmapStep = (float)Chunks[ChunkX, ChunkY].Heights.GetLength(0) / (float)ChunkCollisionResolution;
 
 
         for (int v = 0, z = 0; z <= ChunkCollisionResolution; z++)
@@ -712,7 +964,7 @@ public class ChunkManagerView : ChunkManagerViewBase
             for (int x = 0; x <= ChunkCollisionResolution; x++, v++)
             {
                 vertices[v] = new Vector3(x * resStep / Terrain.PixelsPerUnit,
-                                          ChunkHeightmaps[ChunkX, ChunkY].GetPixel((int)(x * heightmapStep), (int)(z * heightmapStep)).grayscale * Terrain.PixelsToHeight,
+                                          Chunks[ChunkX, ChunkY].Heights[(int)(x * heightmapStep), (int)(z * heightmapStep)] * Terrain.PixelsToHeight,
                                           z * resStep / Terrain.PixelsPerUnit);
 
             }
@@ -738,92 +990,7 @@ public class ChunkManagerView : ChunkManagerViewBase
         meshCollider.RecalculateBounds();
 
         //meshCollider.sharedMesh = newMesh;
-        Chunks[ChunkX, ChunkY].GetComponent<MeshCollider>().sharedMesh = meshCollider;
-    }
-
-    public Vector3[] RecalculateNormals2()
-    {
-        //List<int> tris = this.data.triangles;
-        //Vector3[] normals = new Vector3[this.data.vertices.Count];
-        for (int i = 0; i < triangles.Length; i += 3)
-        {
-            Vector3 a = vertices[triangles[i]] - vertices[triangles[i + 1]];
-            Vector3 b = vertices[triangles[i]] - vertices[triangles[i + 2]];
-
-            Vector3 normal = Vector3.Cross(a, b);
-            normals[triangles[i]] += normal;
-            normals[triangles[i + 1]] += normal;
-            normals[triangles[i + 2]] += normal;
-        }
-
-        List<Vector3> nList = new List<Vector3>();
-        for (int i = 0; i < normals.Length; i++)
-        {
-            nList.Add(normals[i].normalized);
-        }
-        return nList.ToArray();
-    }
-
-    private void CalculateNormals (int resolution) {
-		for (int v = 0, z = 0; z <= resolution; z++) {
-			for (int x = 0; x <= resolution; x++, v++) {
-                normals[v] = new Vector3(-GetXDerivative(x, z, resolution), 1f, -GetZDerivative(x, z, resolution)).normalized;
-			}
-		}
-	}
-
-    private float GetXDerivative(int x, int z, int resolution)
-    {
-        int rowOffset = z * (resolution + 1);
-        float left, right, scale;
-        if (x > 0)
-        {
-            left = vertices[rowOffset + x - 1].y;
-            if (x < resolution)
-            {
-                right = vertices[rowOffset + x + 1].y;
-                scale = 0.5f * resolution;
-            }
-            else
-            {
-                right = vertices[rowOffset + x].y;
-                scale = resolution;
-            }
-        }
-        else
-        {
-            left = vertices[rowOffset + x].y;
-            right = vertices[rowOffset + x + 1].y;
-            scale = resolution;
-        }
-        return (right - left) * scale;
-    }
-
-    private float GetZDerivative(int x, int z, int resolution)
-    {
-        int rowLength = resolution + 1;
-        float back, forward, scale;
-        if (z > 0)
-        {
-            back = vertices[(z - 1) * rowLength + x].y;
-            if (z < resolution)
-            {
-                forward = vertices[(z + 1) * rowLength + x].y;
-                scale = 0.5f * resolution;
-            }
-            else
-            {
-                forward = vertices[z * rowLength + x].y;
-                scale = resolution;
-            }
-        }
-        else
-        {
-            back = vertices[z * rowLength + x].y;
-            forward = vertices[(z + 1) * rowLength + x].y;
-            scale = resolution;
-        }
-        return (forward - back) * scale;
+        Chunks[ChunkX, ChunkY].Obj.GetComponent<MeshCollider>().sharedMesh = meshCollider;
     }
 
 
@@ -839,7 +1006,6 @@ public class ChunkManagerView : ChunkManagerViewBase
 
     private void GenerateTrees()
     {
-        float chunkSize = Terrain.ChunkSize / Terrain.PixelsPerUnit;
         ChunkTreesList = new ChunkTrees[ChunkCountX, ChunkCountY];
 
         for (int x = 0; x < ChunkTreesList.GetLength(0); x++)
@@ -879,8 +1045,8 @@ public class ChunkManagerView : ChunkManagerViewBase
                     //Material mat = TreeMaterials[UnityEngine.Random.Range(0, TreeMaterials.Length)];
 
 
-                    int chunkX = Mathf.Clamp(Mathf.FloorToInt(pos.x / chunkSize), 0, ChunkCountX - 1);
-                    int chunkY = Mathf.Clamp(Mathf.FloorToInt(pos.z / chunkSize), 0, ChunkCountY - 1);
+                    int chunkX = Mathf.Clamp(Mathf.FloorToInt(pos.x / ChunkWidth), 0, ChunkCountX - 1);
+                    int chunkY = Mathf.Clamp(Mathf.FloorToInt(pos.z / ChunkWidth), 0, ChunkCountY - 1);
 
                     ChunkTreesList[chunkX, chunkY].trees.Add(pos);
 

@@ -29,6 +29,7 @@ public static class Timer
         {
             Debug.Log(taskLogs[i]);
         }
+        taskLogs.Clear();
     }
 
 }

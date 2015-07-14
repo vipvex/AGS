@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 3f41641e7310f034aa01e5a047bd6960
-timeCreated: 1435971190
+timeCreated: 1436588388
 licenseType: Pro
 SubstanceImporter:
   serializedVersion: 5
@@ -113,7 +113,7 @@ SubstanceImporter:
         texture: {fileID: 2800000, guid: a8467da7fbe2aff4fb5241b510cc9dad, type: 3}
     - name: heightmap_blur
       value:
-        scalar[0]: 0
+        scalar[0]: 2
         scalar[1]: 0
         scalar[2]: 0
         scalar[3]: 0
@@ -309,7 +309,7 @@ SubstanceImporter:
         texture: {instanceID: 0}
     - name: edge_width
       value:
-        scalar[0]: 3.5
+        scalar[0]: 2.20000005
         scalar[1]: 0
         scalar[2]: 0
         scalar[3]: 0
@@ -372,7 +372,7 @@ SubstanceImporter:
         texture: {instanceID: 0}
     - name: edge_errosion_shadow_opacity
       value:
-        scalar[0]: 0
+        scalar[0]: .340000004
         scalar[1]: 0
         scalar[2]: 0
         scalar[3]: 0
@@ -380,6 +380,27 @@ SubstanceImporter:
     - name: edge_erosion_heighlight_opacity
       value:
         scalar[0]: 0
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+    - name: edge_erosion_shadow_opacity
+      value:
+        scalar[0]: .0719999969
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+    - name: edge_erosion_detail_count
+      value:
+        scalar[0]: 7000
+        scalar[1]: 0
+        scalar[2]: 0
+        scalar[3]: 0
+        texture: {instanceID: 0}
+    - name: edge_erosion_depth
+      value:
+        scalar[0]: .0700000003
         scalar[1]: 0
         scalar[2]: 0
         scalar[3]: 0
@@ -520,8 +541,8 @@ SubstanceImporter:
     buildTargetSettings:
     - serializedVersion: 2
       buildTarget: 
-      textureWidth: 512
-      textureHeight: 512
+      textureWidth: 256
+      textureHeight: 256
       textureFormat: 1
       loadingBehavior: 0
   deletedPrototypes:

@@ -565,4 +565,13 @@ public partial class TerrainViewModel : TerrainViewModelBase {
         return hex;
     }
 
+
+    #region Helper Methods
+
+    public int ChunkCountX() { return Chunks.GetLength(0); }
+
+    public int ChunkCountY() { return Chunks.GetLength(1); }
+
+    #endregion
+
 }

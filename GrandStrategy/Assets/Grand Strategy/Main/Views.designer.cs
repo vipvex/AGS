@@ -309,6 +309,11 @@ public class ChunkViewBase : ViewBase {
     [UnityEngine.HideInInspector()]
     public Int32 _YIndex;
     
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Vector3 _Pos;
+    
     public override string DefaultIdentifier {
         get {
             return base.DefaultIdentifier;
@@ -336,6 +341,7 @@ public class ChunkViewBase : ViewBase {
         var chunkview = ((ChunkViewModel)model);
         chunkview.XIndex = this._XIndex;
         chunkview.YIndex = this._YIndex;
+        chunkview.Pos = this._Pos;
     }
     
     public override void Bind() {

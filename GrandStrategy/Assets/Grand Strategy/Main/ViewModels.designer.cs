@@ -1223,6 +1223,8 @@ public partial class ChunkViewModelBase : ViewModel {
     
     private P<Int32> _YIndexProperty;
     
+    private P<Vector3> _PosProperty;
+    
     private Signal<GenerateChunkCommand> _GenerateChunk;
     
     public ChunkViewModelBase(IEventAggregator aggregator) : 
@@ -1247,6 +1249,15 @@ public partial class ChunkViewModelBase : ViewModel {
         }
     }
     
+    public virtual P<Vector3> PosProperty {
+        get {
+            return _PosProperty;
+        }
+        set {
+            _PosProperty = value;
+        }
+    }
+    
     public virtual Int32 XIndex {
         get {
             return XIndexProperty.Value;
@@ -1265,6 +1276,15 @@ public partial class ChunkViewModelBase : ViewModel {
         }
     }
     
+    public virtual Vector3 Pos {
+        get {
+            return PosProperty.Value;
+        }
+        set {
+            PosProperty.Value = value;
+        }
+    }
+    
     public virtual Signal<GenerateChunkCommand> GenerateChunk {
         get {
             return _GenerateChunk;
@@ -1279,18 +1299,21 @@ public partial class ChunkViewModelBase : ViewModel {
         this.GenerateChunk = new Signal<GenerateChunkCommand>(this, this.Aggregator);
         _XIndexProperty = new P<Int32>(this, "XIndex");
         _YIndexProperty = new P<Int32>(this, "YIndex");
+        _PosProperty = new P<Vector3>(this, "Pos");
     }
     
     public override void Read(ISerializerStream stream) {
         base.Read(stream);
         this.XIndex = stream.DeserializeInt("XIndex");;
         this.YIndex = stream.DeserializeInt("YIndex");;
+        this.Pos = stream.DeserializeVector3("Pos");;
     }
     
     public override void Write(ISerializerStream stream) {
         base.Write(stream);
         stream.SerializeInt("XIndex", this.XIndex);
         stream.SerializeInt("YIndex", this.YIndex);
+        stream.SerializeVector3("Pos", this.Pos);
     }
     
     protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
@@ -1304,6 +1327,8 @@ public partial class ChunkViewModelBase : ViewModel {
         list.Add(new ViewModelPropertyInfo(_XIndexProperty, false, false, false, false));
         // PropertiesChildItem
         list.Add(new ViewModelPropertyInfo(_YIndexProperty, false, false, false, false));
+        // PropertiesChildItem
+        list.Add(new ViewModelPropertyInfo(_PosProperty, false, false, false, false));
     }
 }
 

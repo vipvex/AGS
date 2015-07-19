@@ -25,6 +25,16 @@ public class TestingSceneBase : SceneManager {
     
     private PlayerController _PlayerController;
     
+    private FactionController _FactionController;
+    
+    private UnitController _UnitController;
+    
+    private SettlmentController _SettlmentController;
+    
+    private StructureController _StructureController;
+    
+    private HexStructureController _HexStructureController;
+    
     private TerrainController _TerrainController;
     
     private ResourceController _ResourceController;
@@ -82,6 +92,71 @@ public class TestingSceneBase : SceneManager {
         }
         set {
             _PlayerController = value;
+        }
+    }
+    
+    [InjectAttribute()]
+    public virtual FactionController FactionController {
+        get {
+            if (_FactionController==null) {
+                _FactionController = Container.CreateInstance(typeof(FactionController)) as FactionController;;
+            }
+            return _FactionController;
+        }
+        set {
+            _FactionController = value;
+        }
+    }
+    
+    [InjectAttribute()]
+    public virtual UnitController UnitController {
+        get {
+            if (_UnitController==null) {
+                _UnitController = Container.CreateInstance(typeof(UnitController)) as UnitController;;
+            }
+            return _UnitController;
+        }
+        set {
+            _UnitController = value;
+        }
+    }
+    
+    [InjectAttribute()]
+    public virtual SettlmentController SettlmentController {
+        get {
+            if (_SettlmentController==null) {
+                _SettlmentController = Container.CreateInstance(typeof(SettlmentController)) as SettlmentController;;
+            }
+            return _SettlmentController;
+        }
+        set {
+            _SettlmentController = value;
+        }
+    }
+    
+    [InjectAttribute()]
+    public virtual StructureController StructureController {
+        get {
+            if (_StructureController==null) {
+                _StructureController = Container.CreateInstance(typeof(StructureController)) as StructureController;;
+            }
+            return _StructureController;
+        }
+        set {
+            _StructureController = value;
+        }
+    }
+    
+    [InjectAttribute()]
+    public virtual HexStructureController HexStructureController {
+        get {
+            if (_HexStructureController==null) {
+                _HexStructureController = Container.CreateInstance(typeof(HexStructureController)) as HexStructureController;;
+            }
+            return _HexStructureController;
+        }
+        set {
+            _HexStructureController = value;
         }
     }
     
@@ -156,6 +231,16 @@ public class TestingSceneBase : SceneManager {
         Container.RegisterViewModel<WeatherViewModel>(Weather, "Weather");
         Container.RegisterViewModelManager<PlayerViewModel>(new ViewModelManager<PlayerViewModel>());
         Container.RegisterController<PlayerController>(PlayerController);
+        Container.RegisterViewModelManager<FactionViewModel>(new ViewModelManager<FactionViewModel>());
+        Container.RegisterController<FactionController>(FactionController);
+        Container.RegisterViewModelManager<UnitViewModel>(new ViewModelManager<UnitViewModel>());
+        Container.RegisterController<UnitController>(UnitController);
+        Container.RegisterViewModelManager<SettlmentViewModel>(new ViewModelManager<SettlmentViewModel>());
+        Container.RegisterController<SettlmentController>(SettlmentController);
+        Container.RegisterViewModelManager<StructureViewModel>(new ViewModelManager<StructureViewModel>());
+        Container.RegisterController<StructureController>(StructureController);
+        Container.RegisterViewModelManager<HexStructureViewModel>(new ViewModelManager<HexStructureViewModel>());
+        Container.RegisterController<HexStructureController>(HexStructureController);
         Container.RegisterViewModelManager<TerrainViewModel>(new ViewModelManager<TerrainViewModel>());
         Container.RegisterController<TerrainController>(TerrainController);
         Container.RegisterViewModelManager<ResourceViewModel>(new ViewModelManager<ResourceViewModel>());

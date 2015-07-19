@@ -404,6 +404,17 @@ public partial class TerrainViewModel : TerrainViewModelBase {
         }
     }
 
+    public void CalculateVegetation()
+    {
+        for (int x = 0; x < Width; x++)
+        {
+            for (int y = 0; y < Height; y++)
+            {
+
+            }
+        }
+    }
+
 
     public Vector2Int[] ViableRiverLocations()
     {

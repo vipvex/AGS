@@ -1492,3 +1492,173 @@ public partial class PlayerViewModel {
             base(aggregator) {
     }
 }
+
+public partial class FactionViewModelBase : ViewModel {
+    
+    public FactionViewModelBase(IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+    
+    public override void Bind() {
+        base.Bind();
+    }
+    
+    public override void Read(ISerializerStream stream) {
+        base.Read(stream);
+    }
+    
+    public override void Write(ISerializerStream stream) {
+        base.Write(stream);
+    }
+    
+    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+        base.FillCommands(list);
+    }
+    
+    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+        base.FillProperties(list);
+    }
+}
+
+public partial class FactionViewModel {
+    
+    public FactionViewModel(IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+}
+
+public partial class UnitViewModelBase : ViewModel {
+    
+    public UnitViewModelBase(IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+    
+    public override void Bind() {
+        base.Bind();
+    }
+    
+    public override void Read(ISerializerStream stream) {
+        base.Read(stream);
+    }
+    
+    public override void Write(ISerializerStream stream) {
+        base.Write(stream);
+    }
+    
+    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+        base.FillCommands(list);
+    }
+    
+    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+        base.FillProperties(list);
+    }
+}
+
+public partial class UnitViewModel {
+    
+    public UnitViewModel(IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+}
+
+public partial class SettlmentViewModelBase : ViewModel {
+    
+    public SettlmentViewModelBase(IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+    
+    public override void Bind() {
+        base.Bind();
+    }
+    
+    public override void Read(ISerializerStream stream) {
+        base.Read(stream);
+    }
+    
+    public override void Write(ISerializerStream stream) {
+        base.Write(stream);
+    }
+    
+    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+        base.FillCommands(list);
+    }
+    
+    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+        base.FillProperties(list);
+    }
+}
+
+public partial class SettlmentViewModel {
+    
+    public SettlmentViewModel(IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+}
+
+public partial class StructureViewModelBase : ViewModel {
+    
+    public StructureViewModelBase(IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+    
+    public override void Bind() {
+        base.Bind();
+    }
+    
+    public override void Read(ISerializerStream stream) {
+        base.Read(stream);
+    }
+    
+    public override void Write(ISerializerStream stream) {
+        base.Write(stream);
+    }
+    
+    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+        base.FillCommands(list);
+    }
+    
+    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+        base.FillProperties(list);
+    }
+}
+
+public partial class StructureViewModel {
+    
+    public StructureViewModel(IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+}
+
+public partial class HexStructureViewModelBase : ViewModel {
+    
+    public HexStructureViewModelBase(IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+    
+    public override void Bind() {
+        base.Bind();
+    }
+    
+    public override void Read(ISerializerStream stream) {
+        base.Read(stream);
+    }
+    
+    public override void Write(ISerializerStream stream) {
+        base.Write(stream);
+    }
+    
+    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+        base.FillCommands(list);
+    }
+    
+    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+        base.FillProperties(list);
+    }
+}
+
+public partial class HexStructureViewModel {
+    
+    public HexStructureViewModel(IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+}

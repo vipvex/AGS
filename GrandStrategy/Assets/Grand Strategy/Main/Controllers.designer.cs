@@ -541,3 +541,258 @@ public class PlayerControllerBase : Controller {
         PlayerManager.Remove(viewModel);
     }
 }
+
+public class FactionControllerBase : Controller {
+    
+    private IViewModelManager _FactionManager;
+    
+    [InjectAttribute("Faction")]
+    public IViewModelManager FactionManager {
+        get {
+            return _FactionManager;
+        }
+        set {
+            _FactionManager = value;
+        }
+    }
+    
+    public System.Collections.Generic.IEnumerable<FactionViewModel> FactionViewModels {
+        get {
+            return FactionManager.OfType<FactionViewModel>();
+        }
+    }
+    
+    public override void Setup() {
+        // This is called when the controller is created
+        this.EventAggregator.OnViewModelCreated<FactionViewModel>().Subscribe(this.Initialize);;
+        this.EventAggregator.OnViewModelDestroyed<FactionViewModel>().Subscribe(this.DisposingViewModel);;
+    }
+    
+    public override void Initialize(ViewModel viewModel) {
+        base.Initialize(viewModel);
+        // This is called when a viewmodel is created
+        this.InitializeFaction(((FactionViewModel)(viewModel)));
+    }
+    
+    public virtual FactionViewModel CreateFaction() {
+        return ((FactionViewModel)(this.Create()));
+    }
+    
+    public override ViewModel CreateEmpty() {
+        return new FactionViewModel(this.EventAggregator);
+    }
+    
+    public virtual void InitializeFaction(FactionViewModel viewModel) {
+        // This is called when a FactionViewModel is created
+        FactionManager.Add(viewModel);
+    }
+    
+    public override void DisposingViewModel(ViewModel viewModel) {
+        base.DisposingViewModel(viewModel);
+        FactionManager.Remove(viewModel);
+    }
+}
+
+public class UnitControllerBase : Controller {
+    
+    private IViewModelManager _UnitManager;
+    
+    [InjectAttribute("Unit")]
+    public IViewModelManager UnitManager {
+        get {
+            return _UnitManager;
+        }
+        set {
+            _UnitManager = value;
+        }
+    }
+    
+    public System.Collections.Generic.IEnumerable<UnitViewModel> UnitViewModels {
+        get {
+            return UnitManager.OfType<UnitViewModel>();
+        }
+    }
+    
+    public override void Setup() {
+        // This is called when the controller is created
+        this.EventAggregator.OnViewModelCreated<UnitViewModel>().Subscribe(this.Initialize);;
+        this.EventAggregator.OnViewModelDestroyed<UnitViewModel>().Subscribe(this.DisposingViewModel);;
+    }
+    
+    public override void Initialize(ViewModel viewModel) {
+        base.Initialize(viewModel);
+        // This is called when a viewmodel is created
+        this.InitializeUnit(((UnitViewModel)(viewModel)));
+    }
+    
+    public virtual UnitViewModel CreateUnit() {
+        return ((UnitViewModel)(this.Create()));
+    }
+    
+    public override ViewModel CreateEmpty() {
+        return new UnitViewModel(this.EventAggregator);
+    }
+    
+    public virtual void InitializeUnit(UnitViewModel viewModel) {
+        // This is called when a UnitViewModel is created
+        UnitManager.Add(viewModel);
+    }
+    
+    public override void DisposingViewModel(ViewModel viewModel) {
+        base.DisposingViewModel(viewModel);
+        UnitManager.Remove(viewModel);
+    }
+}
+
+public class SettlmentControllerBase : Controller {
+    
+    private IViewModelManager _SettlmentManager;
+    
+    [InjectAttribute("Settlment")]
+    public IViewModelManager SettlmentManager {
+        get {
+            return _SettlmentManager;
+        }
+        set {
+            _SettlmentManager = value;
+        }
+    }
+    
+    public System.Collections.Generic.IEnumerable<SettlmentViewModel> SettlmentViewModels {
+        get {
+            return SettlmentManager.OfType<SettlmentViewModel>();
+        }
+    }
+    
+    public override void Setup() {
+        // This is called when the controller is created
+        this.EventAggregator.OnViewModelCreated<SettlmentViewModel>().Subscribe(this.Initialize);;
+        this.EventAggregator.OnViewModelDestroyed<SettlmentViewModel>().Subscribe(this.DisposingViewModel);;
+    }
+    
+    public override void Initialize(ViewModel viewModel) {
+        base.Initialize(viewModel);
+        // This is called when a viewmodel is created
+        this.InitializeSettlment(((SettlmentViewModel)(viewModel)));
+    }
+    
+    public virtual SettlmentViewModel CreateSettlment() {
+        return ((SettlmentViewModel)(this.Create()));
+    }
+    
+    public override ViewModel CreateEmpty() {
+        return new SettlmentViewModel(this.EventAggregator);
+    }
+    
+    public virtual void InitializeSettlment(SettlmentViewModel viewModel) {
+        // This is called when a SettlmentViewModel is created
+        SettlmentManager.Add(viewModel);
+    }
+    
+    public override void DisposingViewModel(ViewModel viewModel) {
+        base.DisposingViewModel(viewModel);
+        SettlmentManager.Remove(viewModel);
+    }
+}
+
+public class StructureControllerBase : Controller {
+    
+    private IViewModelManager _StructureManager;
+    
+    [InjectAttribute("Structure")]
+    public IViewModelManager StructureManager {
+        get {
+            return _StructureManager;
+        }
+        set {
+            _StructureManager = value;
+        }
+    }
+    
+    public System.Collections.Generic.IEnumerable<StructureViewModel> StructureViewModels {
+        get {
+            return StructureManager.OfType<StructureViewModel>();
+        }
+    }
+    
+    public override void Setup() {
+        // This is called when the controller is created
+        this.EventAggregator.OnViewModelCreated<StructureViewModel>().Subscribe(this.Initialize);;
+        this.EventAggregator.OnViewModelDestroyed<StructureViewModel>().Subscribe(this.DisposingViewModel);;
+    }
+    
+    public override void Initialize(ViewModel viewModel) {
+        base.Initialize(viewModel);
+        // This is called when a viewmodel is created
+        this.InitializeStructure(((StructureViewModel)(viewModel)));
+    }
+    
+    public virtual StructureViewModel CreateStructure() {
+        return ((StructureViewModel)(this.Create()));
+    }
+    
+    public override ViewModel CreateEmpty() {
+        return new StructureViewModel(this.EventAggregator);
+    }
+    
+    public virtual void InitializeStructure(StructureViewModel viewModel) {
+        // This is called when a StructureViewModel is created
+        StructureManager.Add(viewModel);
+    }
+    
+    public override void DisposingViewModel(ViewModel viewModel) {
+        base.DisposingViewModel(viewModel);
+        StructureManager.Remove(viewModel);
+    }
+}
+
+public class HexStructureControllerBase : Controller {
+    
+    private IViewModelManager _HexStructureManager;
+    
+    [InjectAttribute("HexStructure")]
+    public IViewModelManager HexStructureManager {
+        get {
+            return _HexStructureManager;
+        }
+        set {
+            _HexStructureManager = value;
+        }
+    }
+    
+    public System.Collections.Generic.IEnumerable<HexStructureViewModel> HexStructureViewModels {
+        get {
+            return HexStructureManager.OfType<HexStructureViewModel>();
+        }
+    }
+    
+    public override void Setup() {
+        // This is called when the controller is created
+        this.EventAggregator.OnViewModelCreated<HexStructureViewModel>().Subscribe(this.Initialize);;
+        this.EventAggregator.OnViewModelDestroyed<HexStructureViewModel>().Subscribe(this.DisposingViewModel);;
+    }
+    
+    public override void Initialize(ViewModel viewModel) {
+        base.Initialize(viewModel);
+        // This is called when a viewmodel is created
+        this.InitializeHexStructure(((HexStructureViewModel)(viewModel)));
+    }
+    
+    public virtual HexStructureViewModel CreateHexStructure() {
+        return ((HexStructureViewModel)(this.Create()));
+    }
+    
+    public override ViewModel CreateEmpty() {
+        return new HexStructureViewModel(this.EventAggregator);
+    }
+    
+    public virtual void InitializeHexStructure(HexStructureViewModel viewModel) {
+        // This is called when a HexStructureViewModel is created
+        HexStructureManager.Add(viewModel);
+    }
+    
+    public override void DisposingViewModel(ViewModel viewModel) {
+        base.DisposingViewModel(viewModel);
+        HexStructureManager.Remove(viewModel);
+    }
+}

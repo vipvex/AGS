@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 3f41641e7310f034aa01e5a047bd6960
-timeCreated: 1436588388
+timeCreated: 1437281616
 licenseType: Pro
 SubstanceImporter:
   serializedVersion: 5
@@ -120,7 +120,7 @@ SubstanceImporter:
         texture: {instanceID: 0}
     - name: normal_intensity
       value:
-        scalar[0]: 1
+        scalar[0]: 2
         scalar[1]: 0
         scalar[2]: 0
         scalar[3]: 0
@@ -372,7 +372,7 @@ SubstanceImporter:
         texture: {instanceID: 0}
     - name: edge_errosion_shadow_opacity
       value:
-        scalar[0]: .340000004
+        scalar[0]: .360000014
         scalar[1]: 0
         scalar[2]: 0
         scalar[3]: 0
@@ -400,7 +400,7 @@ SubstanceImporter:
         texture: {instanceID: 0}
     - name: edge_erosion_depth
       value:
-        scalar[0]: .0700000003
+        scalar[0]: .0799999982
         scalar[1]: 0
         scalar[2]: 0
         scalar[3]: 0
@@ -541,8 +541,8 @@ SubstanceImporter:
     buildTargetSettings:
     - serializedVersion: 2
       buildTarget: 
-      textureWidth: 256
-      textureHeight: 256
+      textureWidth: 1024
+      textureHeight: 1024
       textureFormat: 1
       loadingBehavior: 0
   deletedPrototypes:

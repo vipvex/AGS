@@ -144,22 +144,6 @@ public class ChunkManagerView : ChunkManagerViewBase
     public int ChunkCollisionResolution;
 
 
-
-    //private GameObject[,] ChunkObjs;
-    //private ChunkLOD[,]   ChunkLODs;
-    //private Texture2D[,]  ChunkHeightmaps;
-
-    
-    //public AnimationCurve ChunkLODCurve;
-    //public Color32[]      ChunkLODColors;
-
-    //public class ChunkLOD
-    //{
-    //    public bool visible;
-    //    public bool needsToUpdate;
-    //    public int resolution;
-    //}
-
     #endregion
 
     #region Trees
@@ -282,6 +266,7 @@ public class ChunkManagerView : ChunkManagerViewBase
             }
         }
 
+        StitchChunkHeights();
         GeneratedTerrain = true;
         GenerateTrees();
 
@@ -290,8 +275,62 @@ public class ChunkManagerView : ChunkManagerViewBase
         yield return null;
     }
 
-    List<Thread> threadList = new List<Thread>();
+    private void StitchChunkHeights()
+    {
+        float avarage = 0;
 
+        for (int ChunkX = 0; ChunkX < ChunkCountX; ChunkX++)
+        {
+            for (int ChunkY = 0; ChunkY < ChunkCountY; ChunkY++)
+            {
+                // Stitch the top and bottom
+                for (int x = 0; x < ChunkSize; x++)
+                {
+                    // top
+                    if (ChunkY + 1 < ChunkCountY)
+                    {
+                        avarage = (Chunks[ChunkX, ChunkY].Heights[x, ChunkSize - 1] + Chunks[ChunkX, ChunkY + 1].Heights[x, 0]) / 2;
+
+                        Chunks[ChunkX, ChunkY + 1].Heights[x, 0] = avarage;
+                        Chunks[ChunkX, ChunkY].Heights[x, ChunkSize - 1] = avarage;
+                    }
+
+                    // bottom
+                    if (ChunkY - 1 >= 0)
+                    {
+                        avarage = (Chunks[ChunkX, ChunkY].Heights[x, 0] + Chunks[ChunkX, ChunkY - 1].Heights[x, ChunkSize - 1]) / 2;
+
+                        Chunks[ChunkX, ChunkY].Heights[x, 0] = avarage;
+                        Chunks[ChunkX, ChunkY - 1].Heights[x, ChunkSize - 1] = avarage;
+                    }
+                }
+
+                // Stitch right and left
+                for (int y = 0; y < ChunkSize; y++)
+                {
+                    // right
+                    if (ChunkX + 1 < ChunkCountX)
+                    {
+                        avarage = (Chunks[ChunkX, ChunkY].Heights[ChunkSize - 1, y] + Chunks[ChunkX + 1, ChunkY].Heights[0, y]) / 2;
+
+                        Chunks[ChunkX + 1, ChunkY].Heights[0, y] = avarage;
+                        Chunks[ChunkX, ChunkY].Heights[ChunkSize - 1, y] = avarage;
+                    }
+
+                    // bottom
+                    if (ChunkX - 1 >= 0)
+                    {
+                        avarage = (Chunks[ChunkX, ChunkY].Heights[0, y] + Chunks[ChunkX - 1, ChunkY].Heights[ChunkSize - 1, y]) / 2;
+
+                        Chunks[ChunkX - 1, ChunkY].Heights[ChunkSize - 1, y] = avarage;
+                        Chunks[ChunkX, ChunkY].Heights[0, y] = avarage;
+                    }
+                }
+			}
+        }
+    }
+
+    List<Thread> threadList = new List<Thread>();
 
     public void CalcLods()
     {
@@ -342,9 +381,6 @@ public class ChunkManagerView : ChunkManagerViewBase
                 }
             }
         }
-
-        //if (threadLOD != null && !threadLOD.IsAlive)
-        //    threadLOD.Start();  
 
         for (int i = 0; i < threadList.Count; i++)
         {
@@ -413,269 +449,33 @@ public class ChunkManagerView : ChunkManagerViewBase
                 }
 
                 Resolution = Mathf.Clamp(Resolution, 0, LODRings.Length - 1);
-
-
-                //if (ThreadCount < ThreadCountMax && Resolution != Chunks[ChunkIndexX, ChunkIndexY].Resolution &&
-                //    Chunks[ChunkIndexX, ChunkIndexY].NeedsToUpdate == false && Chunks[ChunkIndexX, ChunkIndexY].BuildingMesh == false)
-                //{
-                //    Chunks[ChunkIndexX, ChunkIndexY].NeedsToUpdate = true;
-                //}
-                //
-                //if (Chunks[ChunkIndexX, ChunkIndexY].MeshReady == true)
-                //{
-                //    Debug.Log("building mesh");
-                //    BuildChunkMesh(ChunkIndexX, ChunkIndexY);
-                //    Chunks[ChunkIndexX, ChunkIndexY].NeedsToUpdate = false;
-                //    Chunks[ChunkIndexX, ChunkIndexY].BuildingMesh = false;
-                //    Chunks[ChunkIndexX, ChunkIndexY].MeshReady = false;
-                //    Chunks[ChunkIndexX, ChunkIndexY].Resolution = Resolution;
-                //}
-
             }  
         }
-
-        //for (int x = 0; x < Chunks.GetLength(0); x++)
-        //{
-        //    for (int y = 0; y < Chunks.GetLength(1); y++)
-        //    {
-        //        if (ThreadCount < ThreadCountMax &&
-        //            Chunks[x, y].NeedsToUpdate == true &&
-        //            Chunks[x, y].BuildingMesh == false)
-        //        {
-        //            ThreadCount += 1;
-        //
-        //            new Thread(Chunks[x, y].CalcMesh).Start();
-        //        }
-        //    }
-        //
-        //}
-
-        //Timer.Print();
-
-        /*
-        for (int x = -ChunkViewRange; x < ChunkViewRange; x++)
-        {
-            for (int y = -ChunkViewRange; y < ChunkViewRange; y++)
-            {
-                ChunkIndexX = x + CameraChunkIndex.x;
-                ChunkIndexY = y + CameraChunkIndex.y;
-
-                // if the chunk view is out of the bounds of the world
-                if (ChunkIndexX > ChunkCountX || ChunkIndexY > ChunkCountY || ChunkIndexX < 0 || ChunkIndexY < 0)
-                {
-                    continue;
-                }
-
-                newRes = (int)ChunkLODCurve.Evaluate(Vector3.Distance(Terrain.ChunkCenterWorldPos(ChunkIndexX, ChunkIndexY), CameraPos));
-
-                if (ChunkLODs[ChunkIndexX, ChunkIndexY].resolution != newRes)
-                {
-
-                    ChunkLODs[ChunkIndexX, ChunkIndexY].visible = true;
-                    ChunkLODs[ChunkIndexX, ChunkIndexY].needsToUpdate = true;
-                    ChunkLODs[ChunkIndexX, ChunkIndexY].resolution = newRes;
-
-                    // Make sure to update the surrounding chunks to fix the seams
-                    // Top
-                    if (ChunkIndexY < ChunkCountY)
-                    {
-                        ChunkLODs[ChunkIndexX, ChunkIndexY + 1].needsToUpdate = true;
-                    }
-
-                    // Bottom
-                    if (ChunkIndexY > 0)
-                    {
-                        ChunkLODs[ChunkIndexX, ChunkIndexY - 1].needsToUpdate = true;
-                    }
-
-                    // Right
-                    if (ChunkIndexX < ChunkCountX)
-                    {
-                        ChunkLODs[ChunkIndexX + 1, ChunkIndexY].needsToUpdate = true;
-                    }
-
-                    // Left
-                    if (ChunkIndexX > 0)
-                    {
-                        ChunkLODs[ChunkIndexX - 1, ChunkIndexY].needsToUpdate = true;
-                    }
-                }
-            }
-        }
-
-        // Update all the chunks that need updating
-        bool lowerResTop = false, lowerResRight = false, lowerResBottom = false;
-        for (int x = 0; x <= ChunkCountX; x++)
-        {
-            for (int y = 0; y <= ChunkCountY; y++)
-            {
-                if (ChunkLODs[x, y].needsToUpdate && ChunkLODs[x, y].visible)
-                {
-                    // Check if the top chunk has a lower resolution
-                    if (y + 1 < ChunkCountY)
-                        lowerResTop = ChunkLODs[x, y].resolution < ChunkLODs[x, y + 1].resolution;
-
-                    // Check if the top chunk has a lower resolution
-                    if (y - 1 >= 0)
-                        lowerResBottom = ChunkLODs[x, y].resolution > ChunkLODs[x, y - 1].resolution;
-
-                    // Check if the right chunk has a lower resolution
-                    if (x + 1 <= ChunkCountX)
-                        lowerResRight = ChunkLODs[x, y].resolution < ChunkLODs[x + 1, y].resolution;
-
-                    UpdateChunkMesh(x, y, ChunkLODs[x, y].resolution, lowerResTop, false, lowerResRight, false);
-                    
-                    ChunkLODs[x, y].needsToUpdate = false;
-                }
-            }
-        }
-
-        /*
-        for (int i = 0; i < visibleChunks.Count; i++)
-        {
-            int x = visibleChunks[i].x;
-            int y = visibleChunks[i].y;
-
-            // if the chunk resolution needs to be updated
-            if (CurrentChunkLODs[x, y] != visibleChunkResolutions[x, y])
-            {
-                bool top = false;
-                if (y + 1 <= Terrain.Chunks.GetLength(1))
-                    top = visibleChunkResolutions[x, y] < visibleChunkResolutions[x, y + 1];
-
-                bool right = false;
-                if (x + 1 <= Terrain.Chunks.GetLength(0))
-                    right = visibleChunkResolutions[x, y] < visibleChunkResolutions[x + 1, y];
-
-                UpdateChunkMesh(x, y, visibleChunkResolutions[x, y], top, right);
-
-                // Update the chunks around this one if they have not 
-                //if (CurrentChunkLODs[x + 1, y] != visibleChunkResolutions[x + 1, y])
-                //{
-                //    UpdateChunkMesh(x, y, visibleChunkResolutions[x, y], top, right);
-                //}
-
-                CurrentChunkLODs[x, y] = visibleChunkResolutions[x, y];
-            }
-        }*/
     }
-
-    void DoStuff()
-    {
-        Debug.Log("Doing stuff");
-    }
-
-  
-
-    private void UpdateChunkMeshData(int ChunkX, int ChunkY, int resIndex, bool lowerTop, bool lowerBottom, bool lowerRight, bool lowerLeft)
-    {
-        Debug.Log("Updating chunk " + ChunkX + ", " + ChunkY);
-
-
-        lock (Chunks[ChunkX, ChunkY])
-        {
-            
-            Debug.Log("Trying");
-
-            // Pixels per vetex point
-            int res = 0; //LODRings[resIndex];
-            Debug.Log("Got ring");
-
-            int lowerRes = 0; // LODRings[Mathf.Clamp(resIndex + 1, 0, LODRings.Length - 1)];
-
-            float resStep = (float)ChunkSize / (float)res;
-            float lowerResStep = (float)ChunkSize / (float)lowerRes;
-
-            float lowVertPerHighVert = (float)res / (float)lowerRes; // 2 or 1 
-
-
-            float heightmapStep = (float)ChunkSize / (float)res;
-            float lowerHeightmapStep = (float)ChunkSize / (float)lowerRes;
-            float uvStep = 1f / ChunkSize;
-
-
-            vertices = new Vector3[(res + 1) * (res + 1)];
-            normals = new Vector3[vertices.Length];
-            uv = new Vector2[vertices.Length];
-
-            float xPos, zPos = 0;
-            float lowX, lowZ, leftXHeight, rightXHeight, topZHeight, botZHeight, lowXFloat, lowZFloat, difference, increment = 0;
-            float height = 0;
-
-
-            for (int z = 0, v = 0; z <= res; z++)
-            {
-                for (int x = 0; x <= res; x++, v++)
-                {
-                    Debug.Log("Doing loopp");
-
-                    xPos = Mathf.Clamp(x * resStep / Terrain.PixelsPerUnit, 0, res * resStep / Terrain.PixelsPerUnit);
-                    zPos = Mathf.Clamp(z * resStep / Terrain.PixelsPerUnit, 0, res * resStep / Terrain.PixelsPerUnit);
-
-                    Debug.Log(Chunks[ChunkX, ChunkY]);
-                    Debug.Log("Break");
-
-                    lowX = Mathf.Floor(x / lowVertPerHighVert);
-                    lowZ = Mathf.Floor(z / lowVertPerHighVert);
-                    height = Chunks[ChunkX, ChunkY].Heights[Mathf.Clamp((int)(x * heightmapStep), 0, ChunkSize - 1), Mathf.Clamp((int)(z * heightmapStep), 0, ChunkSize - 1)] * (float)Terrain.PixelsToHeight;
-
-
-                    vertices[v] = new Vector3(xPos, height, zPos);
-
-                    normals[v] = Vector3.zero;
-                    uv[v] = new Vector2(x * resStep * uvStep, z * resStep * uvStep);
-                }
-            }
-
-            Debug.Log("Finished verts   ");
-
-
-            triangles = new int[res * res * 6];
-            for (int t = 0, v = 0, y = 0; y < res; y++, v++)
-            {
-                for (int x = 0; x < res; x++, v++, t += 6)
-                {
-                    triangles[t] = v;
-                    triangles[t + 1] = v + res + 1;
-                    triangles[t + 2] = v + 1;
-                    triangles[t + 3] = v + 1;
-                    triangles[t + 4] = v + res + 1;
-                    triangles[t + 5] = v + res + 2;
-                }
-            }
-
-        }
-
-        //TangentSolver.Solve(mesh);
-        //mesh.RecalculateBounds();
-        //mesh.Optimize();
-        //Timer.End();
-    }
-
 
     private Color32[] pixels;
     int rows;
 
-    private void UpdateChunkTextures(GameObject chunk, int x, int y)
+    private void UpdateChunkTextures(GameObject Chunk, int ChunkX, int ChunkY)
     {
         // generate chunk heightmap and add to array
         // set DrawMaterial textures based on (generate biome map, heightmap)
 
         // Texture generation
-        ProceduralMaterial substance = Chunks[x, y].Obj.GetComponent<Renderer>().material as ProceduralMaterial;
+        ProceduralMaterial substance = Chunks[ChunkX, ChunkY].Obj.GetComponent<Renderer>().material as ProceduralMaterial;
         substance.isReadable = true;
 
         // Give the substance DrawMaterial the appropriate textures and let it process them
 
-        substance.SetProceduralTexture("biome_mask", DrawChunkBiomemap(x, y));
+        substance.SetProceduralTexture("biome_mask", DrawChunkBiomemap(ChunkX, ChunkY));
 
-        substance.SetProceduralTexture("heightmap", DrawChunkHeightmap(x, y));
+        substance.SetProceduralTexture("heightmap", DrawChunkHeightmap(ChunkX, ChunkY));
 
-        Timer.Start("Generating substnace textures " + x + ", " + y);
+        Timer.Start("Generating substnace textures " + ChunkX + ", " + ChunkY);
         substance.RebuildTexturesImmediately();
         Timer.End();
 
-        Timer.Start("Seetting pixel setting " + x + ", " + y);
+        Timer.Start("Seetting pixel setting " + ChunkX + ", " + ChunkY);
 
         // Retrieve the processed heightmap procedural texture
         ProceduralTexture substanceTexture = substance.GetGeneratedTexture("terrain_heightmap");
@@ -687,7 +487,7 @@ public class ChunkManagerView : ChunkManagerViewBase
         //Chunks[x, y].Heightmap.SetPixels32(pixels);
         //Chunks[x, y].Heightmap.wrapMode = TextureWrapMode.Clamp;
 
-        Chunks[x, y].Heights = new float[substanceTexture.width, substanceTexture.height];
+        Chunks[ChunkX, ChunkY].Heights = new float[substanceTexture.width, substanceTexture.height];
 
 
         rows = -1;
@@ -698,9 +498,8 @@ public class ChunkManagerView : ChunkManagerViewBase
 
             if (i % substanceTexture.width == 0) rows++;
 
-            Chunks[x, y].Heights[i % substanceTexture.height, rows] = ((Color)pixels[i]).grayscale;
+            Chunks[ChunkX, ChunkY].Heights[i % substanceTexture.height, rows] = ((Color)pixels[i]).grayscale;
         }
-
 
         //substanceTexture2D.Apply();
 
@@ -794,68 +593,6 @@ public class ChunkManagerView : ChunkManagerViewBase
 
         return newTexture;
     }
-
-
-
-    /* top seam
-    if (z == res && ChunkY + 1 < ChunkCountY)
-    {
-        if (lowerTop == false)
-        {
-            height = Chunks[ChunkX, Mathf.Clamp(ChunkY + 1, 0, ChunkCountY)].Heightmap.GetPixel((int)(x * heightmapStep), 0).grayscale * (float)Terrain.PixelsToHeight; // (height + 
-        }
-        else
-        {
-            leftXHeight = Chunks[ChunkX, ChunkY + 1].Heightmap.GetPixel((int)(lowX * lowerHeightmapStep), 0).grayscale;
-            rightXHeight = Chunks[ChunkX, ChunkY + 1].Heightmap.GetPixel((int)((lowX + 1) * lowerHeightmapStep), 0).grayscale;
-
-            lowXFloat = x / ((float)res / (float)lowerRes);
-            difference = rightXHeight - leftXHeight;
-            increment = ((lowXFloat - (float)lowX)) / 1f;
-
-            height = (leftXHeight + (difference * increment)) * (float)Terrain.PixelsToHeight;
-        }
-    }
-
-    // bottom seam
-    //if (z == 0 && ChunkY <= ChunkCountY)
-    //{
-    //    if (lowerBottom == false)
-    //    {
-    //        height = ChunkHeightmaps[ChunkX, Mathf.Clamp(ChunkY + 1, 0, Terrain.Chunks.GetLength(1) - 1)].GetPixel((int)(x * heightmapStep), -1).grayscale * (float)Terrain.PixelsToHeight; // (height + 
-    //    }
-    //    else
-    //    {
-    //        leftXHeight = ChunkHeightmaps[ChunkX, ChunkY - 1].GetPixel((int)(lowX * lowerHeightmapStep), -1).grayscale;
-    //        rightXHeight = ChunkHeightmaps[ChunkX, ChunkY - 1].GetPixel((int)((lowX + 1) * lowerHeightmapStep), -1).grayscale;
-    //
-    //        lowXFloat = x / ((float)res / (float)lowerRes);
-    //        difference = rightXHeight - leftXHeight;
-    //        increment = ((lowXFloat - (float)lowX)) / 1f;
-    //
-    //        height = (leftXHeight + (difference * increment)) * (float)Terrain.PixelsToHeight;
-    //    }
-    //}
-
-    // right seam
-    if (x == res && ChunkX + 1 < ChunkCountX)
-    {
-        if (lowerRight == false)
-        {
-            height = Chunks[Mathf.Clamp(ChunkX + 1, 0, ChunkCountX), ChunkY].Heightmap.GetPixel(0, (int)(z * heightmapStep)).grayscale * (float)Terrain.PixelsToHeight;
-        }
-        else
-        {
-            topZHeight = Chunks[ChunkX + 1, ChunkY].Heightmap.GetPixel(0, (int)(lowZ * lowerHeightmapStep)).grayscale;
-            botZHeight = Chunks[ChunkX + 1, ChunkY].Heightmap.GetPixel(0, (int)((lowZ + 1) * lowerHeightmapStep)).grayscale;
-
-            lowZFloat = z / ((float)res / (float)lowerRes);
-            difference = botZHeight - topZHeight;
-            increment = ((lowZFloat - (float)lowZ)) / 1f;
-
-            height = (topZHeight + (difference * increment)) * (float)Terrain.PixelsToHeight;
-        }
-    }*/
 
     private Texture2D DrawChunkBiomemap(int ChunkX, int ChunkY)
     {
@@ -1024,7 +761,7 @@ public class ChunkManagerView : ChunkManagerViewBase
             {
                 rand = UnityEngine.Random.Range(0, 10);
 
-                if (Terrain.Hexes[x, y].WaterHex() || rand >= 8) continue;
+                if (Terrain.Hexes[x, y].WaterHex() || Terrain.Hexes[x, y].TerrainType == TerrainType.Arctic || Terrain.Hexes[x, y].TerrainType == TerrainType.Desert || Terrain.Hexes[x, y].TerrainType == TerrainType.ColdDesert || rand >= 6) continue;
 
                 for (int i = 0; i < TreeCount; i++)
                 {
@@ -1081,6 +818,8 @@ public class ChunkManagerView : ChunkManagerViewBase
     // uv frame shift (4 frames per 4 rows in tree texture)
     const float frameSize = 1.0f / 4.0f;
 
+    public float Rows;
+
     // each tree uvs
     Vector2 uv0 = new Vector2(1, 0);
     Vector2 uv1 = new Vector2(0, 0);
@@ -1100,6 +839,9 @@ public class ChunkManagerView : ChunkManagerViewBase
 
         int[] indices = new int[ChunkTrees.trees.Count * 4]; // quads in mesh
 
+        float rowX, rowY;
+        float rowConst = 1.0f / Rows;
+
         for (int i = 0; i < ChunkTrees.trees.Count; i++) // fill arrays
         {
 
@@ -1107,16 +849,20 @@ public class ChunkManagerView : ChunkManagerViewBase
 
             float scale = TreeSize - UnityEngine.Random.value * TreeRandomizeSize;
 
+            rowX = (int)UnityEngine.Random.Range(-1, (int)Rows - 1);
+            rowY = (int)UnityEngine.Random.Range(-1, (int)Rows - 1);
+
+
             // sprite corners
             uvs2[ii] = qv0 * scale;
             uvs2[ii + 1] = qv1 * scale;
             uvs2[ii + 2] = qv2 * scale;
             uvs2[ii + 3] = qv3 * scale;
 
-            uvs[ii] = uv0;
-            uvs[ii + 1] = uv1;
-            uvs[ii + 2] = uv2;
-            uvs[ii + 3] = uv3;
+            uvs[ii + 0] = new Vector2(rowConst * (rowX + 1), rowConst * rowY);
+            uvs[ii + 1] = new Vector2(rowConst * rowX, rowConst * rowY);
+            uvs[ii + 2] = new Vector2(rowConst * rowX, rowConst * (rowY + 1));
+            uvs[ii + 3] = new Vector2(rowConst * (rowX + 1), rowConst * (rowY + 1));
 
             indices[ii] = ii;
             indices[ii + 1] = ii + 1;

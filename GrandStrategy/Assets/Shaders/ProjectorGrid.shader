@@ -6,7 +6,7 @@
     _Size ("Grid Size", Float) = 1
     }
     Subshader {
-    Tags { "RenderType"="Transparent" "Queue"="Transparent+100" }
+    Tags { "RenderType"="Transparent" "Queue"="Transparent+0" }
     Pass {
     ZWrite Off
     Offset -1, -1

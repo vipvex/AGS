@@ -1,10 +1,15 @@
 using System;
-using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using uFrame.Kernel;
+using uFrame.MVVM;
+using uFrame.MVVM.Services;
+using uFrame.MVVM.Bindings;
+using uFrame.Serialization;
 using UniRx;
 using UnityEngine;
+using System.Threading;
 
 
 public class Chunk
@@ -120,8 +125,8 @@ public class Chunk
 
 }
 
-public class ChunkManagerView : ChunkManagerViewBase
-{
+
+public class ChunkManagerView : ChunkManagerViewBase {
 
     public bool drawGizmo = true;
 
@@ -156,20 +161,20 @@ public class ChunkManagerView : ChunkManagerViewBase
     #region Privates
 
     // Camera
-    private Transform  PlayerCamera;
-    private Vector3    CameraPos;
+    private Transform PlayerCamera;
+    private Vector3 CameraPos;
     private Vector2Int CameraChunkIndex;
 
     // Terrain
-    private bool  GeneratedTerrain = false;
-    private int   ChunkSize;
+    private bool GeneratedTerrain = false;
+    private int ChunkSize;
     private float ChunkWidth;
-    private int   ChunkCountX;
-    private int   ChunkCountY;
+    private int ChunkCountX;
+    private int ChunkCountY;
 
 
     // Mesh data
-    private int[]     triangles;
+    private int[] triangles;
     private Vector3[] vertices;
     private Vector3[] normals;
     private Vector2[] uv;
@@ -179,16 +184,18 @@ public class ChunkManagerView : ChunkManagerViewBase
     private Material DrawMaterial;
     private RenderTexture RenderTexture;
 
-    
- #endregion
+
+    #endregion
 
     Thread threadLOD;
 
-    public override void Start()
-    {
-        base.Start();
 
+    protected override IEnumerator Start()
+    {
+ 	 
         SetupRenderSettings();
+
+        return base.Start();
     }
 
     private void SetupRenderSettings()
@@ -211,8 +218,8 @@ public class ChunkManagerView : ChunkManagerViewBase
         Chunk.PixelsToHeight = Terrain.PixelsToHeight;
         ChunkCountX = Terrain.ChunkCountX();
         ChunkCountY = Terrain.ChunkCountY();
-        ChunkSize =   Terrain.ChunkSize;
-        ChunkWidth =  Terrain.ChunkSize / Terrain.PixelsPerUnit;
+        ChunkSize = Terrain.ChunkSize;
+        ChunkWidth = Terrain.ChunkSize / Terrain.PixelsPerUnit;
 
 
         Chunks = new Chunk[ChunkCountX, ChunkCountY];
@@ -237,6 +244,7 @@ public class ChunkManagerView : ChunkManagerViewBase
         }
     }
 
+
     public override void GenerateChunksExecuted(GenerateChunksCommand command)
     {
         StartCoroutine(GenerateChunks());
@@ -245,7 +253,7 @@ public class ChunkManagerView : ChunkManagerViewBase
     private IEnumerator GenerateChunks()
     {
         SetupChunkSettings();
-        
+
         Vector3 ChunkPos;
 
         for (int x = 0; x < ChunkCountX; x++)
@@ -270,7 +278,7 @@ public class ChunkManagerView : ChunkManagerViewBase
         GeneratedTerrain = true;
         GenerateTrees();
 
-        //Timer.Print();
+        Timer.Print();
 
         yield return null;
     }
@@ -326,7 +334,7 @@ public class ChunkManagerView : ChunkManagerViewBase
                         Chunks[ChunkX, ChunkY].Heights[0, y] = avarage;
                     }
                 }
-			}
+            }
         }
     }
 
@@ -374,7 +382,7 @@ public class ChunkManagerView : ChunkManagerViewBase
                     // Mesh should take into account it's neighbors
 
                     Chunks[ChunkIndexX, ChunkIndexY].Resolution = Resolution;
-                    
+
                     ThreadCount += 1;
 
                     threadList.Add(new Thread(Chunks[ChunkIndexX, ChunkIndexY].GenMeshData));
@@ -404,7 +412,7 @@ public class ChunkManagerView : ChunkManagerViewBase
 
 
     public int[] LODRings;
-    public int ThreadCount    = 0;
+    public int ThreadCount = 0;
     public int ThreadCountMax = 5;
     int ChunkIndexX, ChunkIndexY, Resolution, UpdatedChunks;
 
@@ -419,7 +427,7 @@ public class ChunkManagerView : ChunkManagerViewBase
         UpdatedChunks = 0;
 
         // ring loop
-            // chunk loop
+        // chunk loop
 
         for (int x = -ChunkViewRange; x < ChunkViewRange; x++)
         {
@@ -449,7 +457,7 @@ public class ChunkManagerView : ChunkManagerViewBase
                 }
 
                 Resolution = Mathf.Clamp(Resolution, 0, LODRings.Length - 1);
-            }  
+            }
         }
     }
 
@@ -468,12 +476,13 @@ public class ChunkManagerView : ChunkManagerViewBase
         // Give the substance DrawMaterial the appropriate textures and let it process them
 
         substance.SetProceduralTexture("biome_mask", DrawChunkBiomemap(ChunkX, ChunkY));
-
         substance.SetProceduralTexture("heightmap", DrawChunkHeightmap(ChunkX, ChunkY));
 
-        Timer.Start("Generating substnace textures " + ChunkX + ", " + ChunkY);
+
+        Timer.Start("Generating Substance textures " + ChunkX + ", " + ChunkY);
         substance.RebuildTexturesImmediately();
         Timer.End();
+
 
         Timer.Start("Seetting pixel setting " + ChunkX + ", " + ChunkY);
 
@@ -491,7 +500,7 @@ public class ChunkManagerView : ChunkManagerViewBase
 
 
         rows = -1;
-        for (int i = 0; i < pixels.Length ; i++)
+        for (int i = 0; i < pixels.Length; i++)
         {
             //Debug.Log(rows);
             //if (rows >= substanceTexture.width) Debug.Log(rows);
@@ -633,8 +642,8 @@ public class ChunkManagerView : ChunkManagerViewBase
                 posX = Mathf.RoundToInt(x * 2 * HexProperties.tileR + (y % 2 == 0 ? 0 : 1) * HexProperties.tileR + HexProperties.tileR) - chunkTextureOffsetX;
                 posY = ChunkSize - (Mathf.RoundToInt(y * (HexProperties.tileH + HexProperties.side) + HexProperties.side) - chunkTextureOffsetY);
 
-                GL.Color(new Color(Terrain.TerrainTypesList.TerrainTypes[(int)Terrain.Hexes[x, y].TerrainType].Color.r, 
-                                   Terrain.TerrainTypesList.TerrainTypes[(int)Terrain.Hexes[x, y].TerrainType].Color.g, 
+                GL.Color(new Color(Terrain.TerrainTypesList.TerrainTypes[(int)Terrain.Hexes[x, y].TerrainType].Color.r,
+                                   Terrain.TerrainTypesList.TerrainTypes[(int)Terrain.Hexes[x, y].TerrainType].Color.g,
                                    Terrain.TerrainTypesList.TerrainTypes[(int)Terrain.Hexes[x, y].TerrainType].Color.b));
 
                 GL.Vertex3(posX + HexProperties.vertPos[0].x, posY + HexProperties.vertPos[0].y, 0);
@@ -766,7 +775,7 @@ public class ChunkManagerView : ChunkManagerViewBase
                 for (int i = 0; i < TreeCount; i++)
                 {
 
-                    Vector3 pos = Terrain.Hexes[x, y].WorldPos + new Vector3(UnityEngine.Random.Range(-HexProperties.unityWidth, HexProperties.unityWidth) * HexTreeRadius, 
+                    Vector3 pos = Terrain.Hexes[x, y].WorldPos + new Vector3(UnityEngine.Random.Range(-HexProperties.unityWidth, HexProperties.unityWidth) * HexTreeRadius,
                                                                              0,
                                                                              UnityEngine.Random.Range(-HexProperties.unityWidth, HexProperties.unityWidth) * HexTreeRadius);
 
@@ -904,5 +913,4 @@ public class ChunkManagerView : ChunkManagerViewBase
         trees.AddComponent<TurboForestChunk>();
         trees.transform.parent = transform;
     }
-
 }

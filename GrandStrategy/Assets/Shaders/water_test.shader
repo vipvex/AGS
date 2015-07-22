@@ -67,9 +67,7 @@ Shader "Shader Forge/water_test" {
 ////// Lighting:
 ////// Emissive:
                 float4 _node_5889_var = tex2D(_node_5889,TRANSFORM_TEX(i.uv0, _node_5889));
-                float3 node_198 = (_node_2323.rgb*_node_2323.a*_node_5889_var.rgb);
-                float node_287 = saturate((sceneZ-partZ)/_node_9316);
-                float3 emissive = (node_198+node_287);
+                float3 emissive = ((_node_2323.rgb*_node_2323.a*_node_5889_var.rgb)+saturate((sceneZ-partZ)/_node_9316));
                 float3 finalColor = emissive;
                 fixed4 finalRGBA = fixed4(finalColor,1);
                 UNITY_APPLY_FOG(i.fogCoord, finalRGBA);

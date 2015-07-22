@@ -12,11 +12,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using uFrame.Kernel;
+using uFrame.MVVM;
+using uFrame.MVVM.Services;
+using uFrame.MVVM.Bindings;
+using uFrame.Serialization;
 using UniRx;
 using UnityEngine;
 
 
-public class TerrainPreviewViewBase : ViewBase {
+public class TerrainPreviewViewBase : uFrame.MVVM.ViewBase {
     
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
@@ -215,12 +220,11 @@ public class TerrainPreviewViewBase : ViewBase {
         }
     }
     
-    public override ViewModel CreateModel() {
-        return this.RequestViewModel();
-    }
-    
-    protected override void InitializeViewModel(ViewModel model) {
+    protected override void InitializeViewModel(uFrame.MVVM.ViewModel model) {
         base.InitializeViewModel(model);
+        // NOTE: this method is only invoked if the 'Initialize ViewModel' is checked in the inspector.
+        // var vm = model as TerrainViewModel;
+        // This method is invoked when applying the data from the inspector to the viewmodel.  Add any view-specific customizations here.
         var terrainpreviewview = ((TerrainViewModel)model);
         terrainpreviewview.Width = this._Width;
         terrainpreviewview.Height = this._Height;
@@ -261,6 +265,9 @@ public class TerrainPreviewViewBase : ViewBase {
     
     public override void Bind() {
         base.Bind();
+        // Use this.Terrain to access the viewmodel.
+        // Use this method to subscribe to the view-model.
+        // Any designer bindings are created in the base implementation.
         if (_BindGenerateChunks) {
             this.BindCommandExecuted(this.Terrain.GenerateChunks, this.GenerateChunksExecuted);
         }
@@ -271,10 +278,6 @@ public class TerrainPreviewViewBase : ViewBase {
     
     public virtual void ExecuteGenerateTerrain() {
         Terrain.GenerateTerrain.OnNext(new GenerateTerrainCommand() { Sender = Terrain });
-    }
-    
-    public virtual void ExecuteGenerateChunks() {
-        Terrain.GenerateChunks.OnNext(new GenerateChunksCommand() { Sender = Terrain });
     }
     
     public virtual void ExecuteErosion() {
@@ -297,7 +300,7 @@ public class TerrainPreviewViewBase : ViewBase {
     }
 }
 
-public class ChunkViewBase : ViewBase {
+public class ChunkViewBase : uFrame.MVVM.ViewBase {
     
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
@@ -332,12 +335,11 @@ public class ChunkViewBase : ViewBase {
         }
     }
     
-    public override ViewModel CreateModel() {
-        return this.RequestViewModel();
-    }
-    
-    protected override void InitializeViewModel(ViewModel model) {
+    protected override void InitializeViewModel(uFrame.MVVM.ViewModel model) {
         base.InitializeViewModel(model);
+        // NOTE: this method is only invoked if the 'Initialize ViewModel' is checked in the inspector.
+        // var vm = model as ChunkViewModel;
+        // This method is invoked when applying the data from the inspector to the viewmodel.  Add any view-specific customizations here.
         var chunkview = ((ChunkViewModel)model);
         chunkview.XIndex = this._XIndex;
         chunkview.YIndex = this._YIndex;
@@ -346,6 +348,9 @@ public class ChunkViewBase : ViewBase {
     
     public override void Bind() {
         base.Bind();
+        // Use this.Chunk to access the viewmodel.
+        // Use this method to subscribe to the view-model.
+        // Any designer bindings are created in the base implementation.
     }
     
     public virtual void ExecuteGenerateChunk() {
@@ -358,7 +363,7 @@ public class ChunkViewBase : ViewBase {
     }
 }
 
-public class TerrainViewBase : ViewBase {
+public class TerrainViewBase : uFrame.MVVM.ViewBase {
     
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
@@ -553,12 +558,11 @@ public class TerrainViewBase : ViewBase {
         }
     }
     
-    public override ViewModel CreateModel() {
-        return this.RequestViewModel();
-    }
-    
-    protected override void InitializeViewModel(ViewModel model) {
+    protected override void InitializeViewModel(uFrame.MVVM.ViewModel model) {
         base.InitializeViewModel(model);
+        // NOTE: this method is only invoked if the 'Initialize ViewModel' is checked in the inspector.
+        // var vm = model as TerrainViewModel;
+        // This method is invoked when applying the data from the inspector to the viewmodel.  Add any view-specific customizations here.
         var terrainview = ((TerrainViewModel)model);
         terrainview.Width = this._Width;
         terrainview.Height = this._Height;
@@ -599,14 +603,13 @@ public class TerrainViewBase : ViewBase {
     
     public override void Bind() {
         base.Bind();
+        // Use this.Terrain to access the viewmodel.
+        // Use this method to subscribe to the view-model.
+        // Any designer bindings are created in the base implementation.
     }
     
     public virtual void ExecuteGenerateTerrain() {
         Terrain.GenerateTerrain.OnNext(new GenerateTerrainCommand() { Sender = Terrain });
-    }
-    
-    public virtual void ExecuteGenerateChunks() {
-        Terrain.GenerateChunks.OnNext(new GenerateChunksCommand() { Sender = Terrain });
     }
     
     public virtual void ExecuteErosion() {
@@ -629,7 +632,7 @@ public class TerrainViewBase : ViewBase {
     }
 }
 
-public class ChunkManagerViewBase : ViewBase {
+public class ChunkManagerViewBase : uFrame.MVVM.ViewBase {
     
     private System.IDisposable _CameraPosDisposable;
     
@@ -845,12 +848,11 @@ public class ChunkManagerViewBase : ViewBase {
         return this.UpdateAsObservable().Select(p=>CalculateCameraPos());
     }
     
-    public override ViewModel CreateModel() {
-        return this.RequestViewModel();
-    }
-    
-    protected override void InitializeViewModel(ViewModel model) {
+    protected override void InitializeViewModel(uFrame.MVVM.ViewModel model) {
         base.InitializeViewModel(model);
+        // NOTE: this method is only invoked if the 'Initialize ViewModel' is checked in the inspector.
+        // var vm = model as TerrainViewModel;
+        // This method is invoked when applying the data from the inspector to the viewmodel.  Add any view-specific customizations here.
         var chunkmanagerview = ((TerrainViewModel)model);
         chunkmanagerview.Width = this._Width;
         chunkmanagerview.Height = this._Height;
@@ -891,6 +893,9 @@ public class ChunkManagerViewBase : ViewBase {
     
     public override void Bind() {
         base.Bind();
+        // Use this.Terrain to access the viewmodel.
+        // Use this method to subscribe to the view-model.
+        // Any designer bindings are created in the base implementation.
         if (_BindGenerateChunks) {
             this.BindCommandExecuted(this.Terrain.GenerateChunks, this.GenerateChunksExecuted);
         }
@@ -902,10 +907,6 @@ public class ChunkManagerViewBase : ViewBase {
     
     public virtual void ExecuteGenerateTerrain() {
         Terrain.GenerateTerrain.OnNext(new GenerateTerrainCommand() { Sender = Terrain });
-    }
-    
-    public virtual void ExecuteGenerateChunks() {
-        Terrain.GenerateChunks.OnNext(new GenerateChunksCommand() { Sender = Terrain });
     }
     
     public virtual void ExecuteErosion() {
@@ -928,7 +929,7 @@ public class ChunkManagerViewBase : ViewBase {
     }
 }
 
-public class PlayerUIBase : ViewBase {
+public class PlayerUIBase : uFrame.MVVM.ViewBase {
     
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
@@ -938,7 +939,7 @@ public class PlayerUIBase : ViewBase {
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
     [UnityEngine.HideInInspector()]
-    public ViewBase _Terrain;
+    public uFrame.MVVM.ViewBase _Terrain;
     
     [UFToggleGroup("SelectedHex")]
     [UnityEngine.HideInInspector()]
@@ -946,8 +947,9 @@ public class PlayerUIBase : ViewBase {
     
     [UFGroup("SelectedHex")]
     [UnityEngine.SerializeField()]
+    [UnityEngine.HideInInspector()]
     [UnityEngine.Serialization.FormerlySerializedAsAttribute("_SelectedHexonlyWhenChanged")]
-    private bool _SelectedHexOnlyWhenChanged;
+    protected bool _SelectedHexOnlyWhenChanged;
     
     public override string DefaultIdentifier {
         get {
@@ -967,19 +969,21 @@ public class PlayerUIBase : ViewBase {
         }
     }
     
-    public override ViewModel CreateModel() {
-        return this.RequestViewModel();
-    }
-    
-    protected override void InitializeViewModel(ViewModel model) {
+    protected override void InitializeViewModel(uFrame.MVVM.ViewModel model) {
         base.InitializeViewModel(model);
+        // NOTE: this method is only invoked if the 'Initialize ViewModel' is checked in the inspector.
+        // var vm = model as PlayerViewModel;
+        // This method is invoked when applying the data from the inspector to the viewmodel.  Add any view-specific customizations here.
         var playerui = ((PlayerViewModel)model);
         playerui.SelectedHex = this._SelectedHex;
-        playerui.Terrain = this._Terrain == null ? null : this._Terrain.ViewModelObject as TerrainViewModel;
+        playerui.Terrain = this._Terrain == null ? null :  ViewService.FetchViewModel(this._Terrain) as TerrainViewModel;
     }
     
     public override void Bind() {
         base.Bind();
+        // Use this.Player to access the viewmodel.
+        // Use this method to subscribe to the view-model.
+        // Any designer bindings are created in the base implementation.
         if (_BindSelectedHex) {
             this.BindProperty(this.Player.SelectedHexProperty, this.SelectedHexChanged, _SelectedHexOnlyWhenChanged);
         }
@@ -989,7 +993,7 @@ public class PlayerUIBase : ViewBase {
     }
 }
 
-public class PlayerViewBase : ViewBase {
+public class PlayerViewBase : uFrame.MVVM.ViewBase {
     
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
@@ -999,7 +1003,7 @@ public class PlayerViewBase : ViewBase {
     [UnityEngine.SerializeField()]
     [UFGroup("View Model Properties")]
     [UnityEngine.HideInInspector()]
-    public ViewBase _Terrain;
+    public uFrame.MVVM.ViewBase _Terrain;
     
     public override string DefaultIdentifier {
         get {
@@ -1019,18 +1023,472 @@ public class PlayerViewBase : ViewBase {
         }
     }
     
-    public override ViewModel CreateModel() {
-        return this.RequestViewModel();
-    }
-    
-    protected override void InitializeViewModel(ViewModel model) {
+    protected override void InitializeViewModel(uFrame.MVVM.ViewModel model) {
         base.InitializeViewModel(model);
+        // NOTE: this method is only invoked if the 'Initialize ViewModel' is checked in the inspector.
+        // var vm = model as PlayerViewModel;
+        // This method is invoked when applying the data from the inspector to the viewmodel.  Add any view-specific customizations here.
         var playerview = ((PlayerViewModel)model);
         playerview.SelectedHex = this._SelectedHex;
-        playerview.Terrain = this._Terrain == null ? null : this._Terrain.ViewModelObject as TerrainViewModel;
+        playerview.Terrain = this._Terrain == null ? null :  ViewService.FetchViewModel(this._Terrain) as TerrainViewModel;
     }
     
     public override void Bind() {
         base.Bind();
+        // Use this.Player to access the viewmodel.
+        // Use this method to subscribe to the view-model.
+        // Any designer bindings are created in the base implementation.
+    }
+}
+
+public class GameTimeUIBase : uFrame.MVVM.ViewBase {
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Int32 _Year;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Int32 _Month;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Int32 _Day;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Seasons _Season;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Int32 _GameSpeed;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Boolean _Paused;
+    
+    [UFToggleGroup("Day")]
+    [UnityEngine.HideInInspector()]
+    public bool _BindDay = true;
+    
+    [UFGroup("Day")]
+    [UnityEngine.SerializeField()]
+    [UnityEngine.HideInInspector()]
+    [UnityEngine.Serialization.FormerlySerializedAsAttribute("_DayonlyWhenChanged")]
+    protected bool _DayOnlyWhenChanged;
+    
+    [UFToggleGroup("Month")]
+    [UnityEngine.HideInInspector()]
+    public bool _BindMonth = true;
+    
+    [UFGroup("Month")]
+    [UnityEngine.SerializeField()]
+    [UnityEngine.HideInInspector()]
+    [UnityEngine.Serialization.FormerlySerializedAsAttribute("_MonthonlyWhenChanged")]
+    protected bool _MonthOnlyWhenChanged;
+    
+    [UFToggleGroup("Season")]
+    [UnityEngine.HideInInspector()]
+    public bool _BindSeason = true;
+    
+    [UFGroup("Season")]
+    [UnityEngine.SerializeField()]
+    [UnityEngine.HideInInspector()]
+    [UnityEngine.Serialization.FormerlySerializedAsAttribute("_SeasononlyWhenChanged")]
+    protected bool _SeasonOnlyWhenChanged;
+    
+    [UFToggleGroup("Year")]
+    [UnityEngine.HideInInspector()]
+    public bool _BindYear = true;
+    
+    [UFGroup("Year")]
+    [UnityEngine.SerializeField()]
+    [UnityEngine.HideInInspector()]
+    [UnityEngine.Serialization.FormerlySerializedAsAttribute("_YearonlyWhenChanged")]
+    protected bool _YearOnlyWhenChanged;
+    
+    [UFToggleGroup("DecreaseGameSpeed")]
+    [UnityEngine.HideInInspector()]
+    public bool _BindDecreaseGameSpeed = true;
+    
+    [UFGroup("DecreaseGameSpeed")]
+    [UnityEngine.SerializeField()]
+    [UnityEngine.HideInInspector()]
+    [UnityEngine.Serialization.FormerlySerializedAsAttribute("_DecreaseGameSpeedbutton")]
+    protected UnityEngine.UI.Button _DecreaseGameSpeedButton;
+    
+    [UFToggleGroup("IncreaseGameSpeed")]
+    [UnityEngine.HideInInspector()]
+    public bool _BindIncreaseGameSpeed = true;
+    
+    [UFGroup("IncreaseGameSpeed")]
+    [UnityEngine.SerializeField()]
+    [UnityEngine.HideInInspector()]
+    [UnityEngine.Serialization.FormerlySerializedAsAttribute("_IncreaseGameSpeedbutton")]
+    protected UnityEngine.UI.Button _IncreaseGameSpeedButton;
+    
+    [UFToggleGroup("TogglePause")]
+    [UnityEngine.HideInInspector()]
+    public bool _BindTogglePause = true;
+    
+    [UFGroup("TogglePause")]
+    [UnityEngine.SerializeField()]
+    [UnityEngine.HideInInspector()]
+    [UnityEngine.Serialization.FormerlySerializedAsAttribute("_TogglePausebutton")]
+    protected UnityEngine.UI.Button _TogglePauseButton;
+    
+    [UFToggleGroup("Paused")]
+    [UnityEngine.HideInInspector()]
+    public bool _BindPaused = true;
+    
+    [UFGroup("Paused")]
+    [UnityEngine.SerializeField()]
+    [UnityEngine.HideInInspector()]
+    [UnityEngine.Serialization.FormerlySerializedAsAttribute("_PausedonlyWhenChanged")]
+    protected bool _PausedOnlyWhenChanged;
+    
+    [UFToggleGroup("GameSpeed")]
+    [UnityEngine.HideInInspector()]
+    public bool _BindGameSpeed = true;
+    
+    [UFGroup("GameSpeed")]
+    [UnityEngine.SerializeField()]
+    [UnityEngine.HideInInspector()]
+    [UnityEngine.Serialization.FormerlySerializedAsAttribute("_GameSpeedonlyWhenChanged")]
+    protected bool _GameSpeedOnlyWhenChanged;
+    
+    public override string DefaultIdentifier {
+        get {
+            return base.DefaultIdentifier;
+        }
+    }
+    
+    public override System.Type ViewModelType {
+        get {
+            return typeof(GameTimeViewModel);
+        }
+    }
+    
+    public GameTimeViewModel GameTime {
+        get {
+            return (GameTimeViewModel)ViewModelObject;
+        }
+    }
+    
+    protected override void InitializeViewModel(uFrame.MVVM.ViewModel model) {
+        base.InitializeViewModel(model);
+        // NOTE: this method is only invoked if the 'Initialize ViewModel' is checked in the inspector.
+        // var vm = model as GameTimeViewModel;
+        // This method is invoked when applying the data from the inspector to the viewmodel.  Add any view-specific customizations here.
+        var gametimeui = ((GameTimeViewModel)model);
+        gametimeui.Year = this._Year;
+        gametimeui.Month = this._Month;
+        gametimeui.Day = this._Day;
+        gametimeui.Season = this._Season;
+        gametimeui.GameSpeed = this._GameSpeed;
+        gametimeui.Paused = this._Paused;
+    }
+    
+    public override void Bind() {
+        base.Bind();
+        // Use this.GameTime to access the viewmodel.
+        // Use this method to subscribe to the view-model.
+        // Any designer bindings are created in the base implementation.
+        if (_BindDay) {
+            this.BindProperty(this.GameTime.DayProperty, this.DayChanged, _DayOnlyWhenChanged);
+        }
+        if (_BindMonth) {
+            this.BindProperty(this.GameTime.MonthProperty, this.MonthChanged, _MonthOnlyWhenChanged);
+        }
+        if (_BindSeason) {
+            this.BindProperty(this.GameTime.SeasonProperty, this.SeasonChanged, _SeasonOnlyWhenChanged);
+        }
+        if (_BindYear) {
+            this.BindProperty(this.GameTime.YearProperty, this.YearChanged, _YearOnlyWhenChanged);
+        }
+        if (_BindDecreaseGameSpeed) {
+            this.BindButtonToCommand(_DecreaseGameSpeedButton, this.GameTime.DecreaseGameSpeed);
+        }
+        if (_BindIncreaseGameSpeed) {
+            this.BindButtonToCommand(_IncreaseGameSpeedButton, this.GameTime.IncreaseGameSpeed);
+        }
+        if (_BindTogglePause) {
+            this.BindButtonToCommand(_TogglePauseButton, this.GameTime.TogglePause);
+        }
+        if (_BindPaused) {
+            this.BindProperty(this.GameTime.PausedProperty, this.PausedChanged, _PausedOnlyWhenChanged);
+        }
+        if (_BindGameSpeed) {
+            this.BindProperty(this.GameTime.GameSpeedProperty, this.GameSpeedChanged, _GameSpeedOnlyWhenChanged);
+        }
+    }
+    
+    public virtual void DayChanged(Int32 arg1) {
+    }
+    
+    public virtual void MonthChanged(Int32 arg1) {
+    }
+    
+    public virtual void SeasonChanged(Seasons arg1) {
+    }
+    
+    public virtual void YearChanged(Int32 arg1) {
+    }
+    
+    public virtual void PausedChanged(Boolean arg1) {
+    }
+    
+    public virtual void GameSpeedChanged(Int32 arg1) {
+    }
+    
+    public virtual void ExecuteIncreaseGameSpeed() {
+        GameTime.IncreaseGameSpeed.OnNext(new IncreaseGameSpeedCommand() { Sender = GameTime });
+    }
+    
+    public virtual void ExecuteDecreaseGameSpeed() {
+        GameTime.DecreaseGameSpeed.OnNext(new DecreaseGameSpeedCommand() { Sender = GameTime });
+    }
+    
+    public virtual void ExecuteTogglePause() {
+        GameTime.TogglePause.OnNext(new TogglePauseCommand() { Sender = GameTime });
+    }
+    
+    public virtual void ExecuteIncreaseGameSpeed(IncreaseGameSpeedCommand command) {
+        command.Sender = GameTime;
+        GameTime.IncreaseGameSpeed.OnNext(command);
+    }
+    
+    public virtual void ExecuteDecreaseGameSpeed(DecreaseGameSpeedCommand command) {
+        command.Sender = GameTime;
+        GameTime.DecreaseGameSpeed.OnNext(command);
+    }
+    
+    public virtual void ExecuteTogglePause(TogglePauseCommand command) {
+        command.Sender = GameTime;
+        GameTime.TogglePause.OnNext(command);
+    }
+    
+    public virtual void ExecuteGameTick(GameTickCommand command) {
+        command.Sender = GameTime;
+        GameTime.GameTick.OnNext(command);
+    }
+    
+    public virtual void ExecuteGameTick(GameTick arg) {
+        GameTime.GameTick.OnNext(new GameTickCommand() { Sender = GameTime, Argument = arg });
+    }
+}
+
+public class GameLogicUIViewBase : uFrame.MVVM.ViewBase {
+    
+    [UFToggleGroup("StartGame")]
+    [UnityEngine.HideInInspector()]
+    public bool _BindStartGame = true;
+    
+    [UFGroup("StartGame")]
+    [UnityEngine.SerializeField()]
+    [UnityEngine.HideInInspector()]
+    [UnityEngine.Serialization.FormerlySerializedAsAttribute("_StartGamebutton")]
+    protected UnityEngine.UI.Button _StartGameButton;
+    
+    public override string DefaultIdentifier {
+        get {
+            return base.DefaultIdentifier;
+        }
+    }
+    
+    public override System.Type ViewModelType {
+        get {
+            return typeof(GameLogicViewModel);
+        }
+    }
+    
+    public GameLogicViewModel GameLogic {
+        get {
+            return (GameLogicViewModel)ViewModelObject;
+        }
+    }
+    
+    protected override void InitializeViewModel(uFrame.MVVM.ViewModel model) {
+        base.InitializeViewModel(model);
+        // NOTE: this method is only invoked if the 'Initialize ViewModel' is checked in the inspector.
+        // var vm = model as GameLogicViewModel;
+        // This method is invoked when applying the data from the inspector to the viewmodel.  Add any view-specific customizations here.
+    }
+    
+    public override void Bind() {
+        base.Bind();
+        // Use this.GameLogic to access the viewmodel.
+        // Use this method to subscribe to the view-model.
+        // Any designer bindings are created in the base implementation.
+        if (_BindStartGame) {
+            this.BindButtonToCommand(_StartGameButton, this.GameLogic.StartGame);
+        }
+    }
+    
+    public virtual void ExecuteStartGame() {
+        GameLogic.StartGame.OnNext(new StartGameCommand() { Sender = GameLogic });
+    }
+    
+    public virtual void ExecuteStartGame(StartGameCommand command) {
+        command.Sender = GameLogic;
+        GameLogic.StartGame.OnNext(command);
+    }
+}
+
+public class GameLogicViewBase : uFrame.MVVM.ViewBase {
+    
+    public override string DefaultIdentifier {
+        get {
+            return base.DefaultIdentifier;
+        }
+    }
+    
+    public override System.Type ViewModelType {
+        get {
+            return typeof(GameLogicViewModel);
+        }
+    }
+    
+    public GameLogicViewModel GameLogic {
+        get {
+            return (GameLogicViewModel)ViewModelObject;
+        }
+    }
+    
+    protected override void InitializeViewModel(uFrame.MVVM.ViewModel model) {
+        base.InitializeViewModel(model);
+        // NOTE: this method is only invoked if the 'Initialize ViewModel' is checked in the inspector.
+        // var vm = model as GameLogicViewModel;
+        // This method is invoked when applying the data from the inspector to the viewmodel.  Add any view-specific customizations here.
+    }
+    
+    public override void Bind() {
+        base.Bind();
+        // Use this.GameLogic to access the viewmodel.
+        // Use this method to subscribe to the view-model.
+        // Any designer bindings are created in the base implementation.
+    }
+    
+    public virtual void ExecuteStartGame() {
+        GameLogic.StartGame.OnNext(new StartGameCommand() { Sender = GameLogic });
+    }
+    
+    public virtual void ExecuteStartGame(StartGameCommand command) {
+        command.Sender = GameLogic;
+        GameLogic.StartGame.OnNext(command);
+    }
+}
+
+public class GameTimeViewBase : uFrame.MVVM.ViewBase {
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Int32 _Year;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Int32 _Month;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Int32 _Day;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Seasons _Season;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Int32 _GameSpeed;
+    
+    [UnityEngine.SerializeField()]
+    [UFGroup("View Model Properties")]
+    [UnityEngine.HideInInspector()]
+    public Boolean _Paused;
+    
+    public override string DefaultIdentifier {
+        get {
+            return base.DefaultIdentifier;
+        }
+    }
+    
+    public override System.Type ViewModelType {
+        get {
+            return typeof(GameTimeViewModel);
+        }
+    }
+    
+    public GameTimeViewModel GameTime {
+        get {
+            return (GameTimeViewModel)ViewModelObject;
+        }
+    }
+    
+    protected override void InitializeViewModel(uFrame.MVVM.ViewModel model) {
+        base.InitializeViewModel(model);
+        // NOTE: this method is only invoked if the 'Initialize ViewModel' is checked in the inspector.
+        // var vm = model as GameTimeViewModel;
+        // This method is invoked when applying the data from the inspector to the viewmodel.  Add any view-specific customizations here.
+        var gametimeview = ((GameTimeViewModel)model);
+        gametimeview.Year = this._Year;
+        gametimeview.Month = this._Month;
+        gametimeview.Day = this._Day;
+        gametimeview.Season = this._Season;
+        gametimeview.GameSpeed = this._GameSpeed;
+        gametimeview.Paused = this._Paused;
+    }
+    
+    public override void Bind() {
+        base.Bind();
+        // Use this.GameTime to access the viewmodel.
+        // Use this method to subscribe to the view-model.
+        // Any designer bindings are created in the base implementation.
+    }
+    
+    public virtual void ExecuteIncreaseGameSpeed() {
+        GameTime.IncreaseGameSpeed.OnNext(new IncreaseGameSpeedCommand() { Sender = GameTime });
+    }
+    
+    public virtual void ExecuteDecreaseGameSpeed() {
+        GameTime.DecreaseGameSpeed.OnNext(new DecreaseGameSpeedCommand() { Sender = GameTime });
+    }
+    
+    public virtual void ExecuteTogglePause() {
+        GameTime.TogglePause.OnNext(new TogglePauseCommand() { Sender = GameTime });
+    }
+    
+    public virtual void ExecuteIncreaseGameSpeed(IncreaseGameSpeedCommand command) {
+        command.Sender = GameTime;
+        GameTime.IncreaseGameSpeed.OnNext(command);
+    }
+    
+    public virtual void ExecuteDecreaseGameSpeed(DecreaseGameSpeedCommand command) {
+        command.Sender = GameTime;
+        GameTime.DecreaseGameSpeed.OnNext(command);
+    }
+    
+    public virtual void ExecuteTogglePause(TogglePauseCommand command) {
+        command.Sender = GameTime;
+        GameTime.TogglePause.OnNext(command);
+    }
+    
+    public virtual void ExecuteGameTick(GameTickCommand command) {
+        command.Sender = GameTime;
+        GameTime.GameTick.OnNext(command);
+    }
+    
+    public virtual void ExecuteGameTick(GameTick arg) {
+        GameTime.GameTick.OnNext(new GameTickCommand() { Sender = GameTime, Argument = arg });
     }
 }

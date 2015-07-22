@@ -12,13 +12,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UniRx;
 using UnityEngine;
+using uFrame.Serialization;
+using uFrame.MVVM;
+using uFrame.Kernel;
+using uFrame.IOC;
+using UniRx;
 
 
-public class TerrainControllerBase : Controller {
+public class TerrainControllerBase : uFrame.MVVM.Controller {
     
-    private IViewModelManager _TerrainManager;
+    private uFrame.MVVM.IViewModelManager _TerrainViewModelManager;
     
     private TerrainViewModel _Terrain;
     
@@ -26,17 +30,17 @@ public class TerrainControllerBase : Controller {
     
     private WeatherViewModel _Weather;
     
-    [InjectAttribute("Terrain")]
-    public IViewModelManager TerrainManager {
+    [uFrame.IOC.InjectAttribute("Terrain")]
+    public uFrame.MVVM.IViewModelManager TerrainViewModelManager {
         get {
-            return _TerrainManager;
+            return _TerrainViewModelManager;
         }
         set {
-            _TerrainManager = value;
+            _TerrainViewModelManager = value;
         }
     }
     
-    [InjectAttribute("Terrain")]
+    [uFrame.IOC.InjectAttribute("Terrain")]
     public TerrainViewModel Terrain {
         get {
             return _Terrain;
@@ -46,7 +50,7 @@ public class TerrainControllerBase : Controller {
         }
     }
     
-    [InjectAttribute("World")]
+    [uFrame.IOC.InjectAttribute("World")]
     public WorldViewModel World {
         get {
             return _World;
@@ -56,7 +60,7 @@ public class TerrainControllerBase : Controller {
         }
     }
     
-    [InjectAttribute("Weather")]
+    [uFrame.IOC.InjectAttribute("Weather")]
     public WeatherViewModel Weather {
         get {
             return _Weather;
@@ -66,49 +70,45 @@ public class TerrainControllerBase : Controller {
         }
     }
     
-    public System.Collections.Generic.IEnumerable<TerrainViewModel> TerrainViewModels {
+    public IEnumerable<TerrainViewModel> TerrainViewModels {
         get {
-            return TerrainManager.OfType<TerrainViewModel>();
+            return TerrainViewModelManager.OfType<TerrainViewModel>();
         }
     }
     
     public override void Setup() {
+        base.Setup();
         // This is called when the controller is created
-        this.OnEvent<GenerateTerrainCommand>().Subscribe(this.GenerateTerrainHandler);
-        this.OnEvent<GenerateChunksCommand>().Subscribe(this.GenerateChunksHandler);
-        this.OnEvent<ErosionCommand>().Subscribe(this.ErosionHandler);
-        this.EventAggregator.OnViewModelCreated<TerrainViewModel>().Subscribe(this.Initialize);;
-        this.EventAggregator.OnViewModelDestroyed<TerrainViewModel>().Subscribe(this.DisposingViewModel);;
     }
     
-    public override void Initialize(ViewModel viewModel) {
+    public override void Initialize(uFrame.MVVM.ViewModel viewModel) {
         base.Initialize(viewModel);
         // This is called when a viewmodel is created
         this.InitializeTerrain(((TerrainViewModel)(viewModel)));
     }
     
     public virtual TerrainViewModel CreateTerrain() {
-        return ((TerrainViewModel)(this.Create()));
+        return ((TerrainViewModel)(this.Create(Guid.NewGuid().ToString())));
     }
     
-    public override ViewModel CreateEmpty() {
+    public override uFrame.MVVM.ViewModel CreateEmpty() {
         return new TerrainViewModel(this.EventAggregator);
     }
     
     public virtual void InitializeTerrain(TerrainViewModel viewModel) {
         // This is called when a TerrainViewModel is created
-        TerrainManager.Add(viewModel);
+        viewModel.GenerateTerrain.Action = this.GenerateTerrainHandler;
+        viewModel.GenerateChunks.Action = this.GenerateChunksHandler;
+        viewModel.Erosion.Action = this.ErosionHandler;
+        TerrainViewModelManager.Add(viewModel);
     }
     
-    public override void DisposingViewModel(ViewModel viewModel) {
+    public override void DisposingViewModel(uFrame.MVVM.ViewModel viewModel) {
         base.DisposingViewModel(viewModel);
-        TerrainManager.Remove(viewModel);
+        TerrainViewModelManager.Remove(viewModel);
     }
     
     public virtual void GenerateTerrain(TerrainViewModel viewModel) {
-    }
-    
-    public virtual void GenerateChunks(TerrainViewModel viewModel) {
     }
     
     public virtual void Erosion(TerrainViewModel viewModel) {
@@ -119,17 +119,20 @@ public class TerrainControllerBase : Controller {
     }
     
     public virtual void GenerateChunksHandler(GenerateChunksCommand command) {
-        this.GenerateChunks(command.Sender as TerrainViewModel);
+        this.GenerateChunks(command.Sender as TerrainViewModel, command);
     }
     
     public virtual void ErosionHandler(ErosionCommand command) {
         this.Erosion(command.Sender as TerrainViewModel);
     }
+    
+    public virtual void GenerateChunks(TerrainViewModel viewModel, GenerateChunksCommand arg) {
+    }
 }
 
-public class ResourceControllerBase : Controller {
+public class ResourceControllerBase : uFrame.MVVM.Controller {
     
-    private IViewModelManager _ResourceManager;
+    private uFrame.MVVM.IViewModelManager _ResourceViewModelManager;
     
     private TerrainViewModel _Terrain;
     
@@ -137,17 +140,17 @@ public class ResourceControllerBase : Controller {
     
     private WeatherViewModel _Weather;
     
-    [InjectAttribute("Resource")]
-    public IViewModelManager ResourceManager {
+    [uFrame.IOC.InjectAttribute("Resource")]
+    public uFrame.MVVM.IViewModelManager ResourceViewModelManager {
         get {
-            return _ResourceManager;
+            return _ResourceViewModelManager;
         }
         set {
-            _ResourceManager = value;
+            _ResourceViewModelManager = value;
         }
     }
     
-    [InjectAttribute("Terrain")]
+    [uFrame.IOC.InjectAttribute("Terrain")]
     public TerrainViewModel Terrain {
         get {
             return _Terrain;
@@ -157,7 +160,7 @@ public class ResourceControllerBase : Controller {
         }
     }
     
-    [InjectAttribute("World")]
+    [uFrame.IOC.InjectAttribute("World")]
     public WorldViewModel World {
         get {
             return _World;
@@ -167,7 +170,7 @@ public class ResourceControllerBase : Controller {
         }
     }
     
-    [InjectAttribute("Weather")]
+    [uFrame.IOC.InjectAttribute("Weather")]
     public WeatherViewModel Weather {
         get {
             return _Weather;
@@ -177,46 +180,45 @@ public class ResourceControllerBase : Controller {
         }
     }
     
-    public System.Collections.Generic.IEnumerable<ResourceViewModel> ResourceViewModels {
+    public IEnumerable<ResourceViewModel> ResourceViewModels {
         get {
-            return ResourceManager.OfType<ResourceViewModel>();
+            return ResourceViewModelManager.OfType<ResourceViewModel>();
         }
     }
     
     public override void Setup() {
+        base.Setup();
         // This is called when the controller is created
-        this.EventAggregator.OnViewModelCreated<ResourceViewModel>().Subscribe(this.Initialize);;
-        this.EventAggregator.OnViewModelDestroyed<ResourceViewModel>().Subscribe(this.DisposingViewModel);;
     }
     
-    public override void Initialize(ViewModel viewModel) {
+    public override void Initialize(uFrame.MVVM.ViewModel viewModel) {
         base.Initialize(viewModel);
         // This is called when a viewmodel is created
         this.InitializeResource(((ResourceViewModel)(viewModel)));
     }
     
     public virtual ResourceViewModel CreateResource() {
-        return ((ResourceViewModel)(this.Create()));
+        return ((ResourceViewModel)(this.Create(Guid.NewGuid().ToString())));
     }
     
-    public override ViewModel CreateEmpty() {
+    public override uFrame.MVVM.ViewModel CreateEmpty() {
         return new ResourceViewModel(this.EventAggregator);
     }
     
     public virtual void InitializeResource(ResourceViewModel viewModel) {
         // This is called when a ResourceViewModel is created
-        ResourceManager.Add(viewModel);
+        ResourceViewModelManager.Add(viewModel);
     }
     
-    public override void DisposingViewModel(ViewModel viewModel) {
+    public override void DisposingViewModel(uFrame.MVVM.ViewModel viewModel) {
         base.DisposingViewModel(viewModel);
-        ResourceManager.Remove(viewModel);
+        ResourceViewModelManager.Remove(viewModel);
     }
 }
 
-public class WeatherControllerBase : Controller {
+public class WeatherControllerBase : uFrame.MVVM.Controller {
     
-    private IViewModelManager _WeatherManager;
+    private uFrame.MVVM.IViewModelManager _WeatherViewModelManager;
     
     private TerrainViewModel _Terrain;
     
@@ -224,17 +226,17 @@ public class WeatherControllerBase : Controller {
     
     private WeatherViewModel _Weather;
     
-    [InjectAttribute("Weather")]
-    public IViewModelManager WeatherManager {
+    [uFrame.IOC.InjectAttribute("Weather")]
+    public uFrame.MVVM.IViewModelManager WeatherViewModelManager {
         get {
-            return _WeatherManager;
+            return _WeatherViewModelManager;
         }
         set {
-            _WeatherManager = value;
+            _WeatherViewModelManager = value;
         }
     }
     
-    [InjectAttribute("Terrain")]
+    [uFrame.IOC.InjectAttribute("Terrain")]
     public TerrainViewModel Terrain {
         get {
             return _Terrain;
@@ -244,7 +246,7 @@ public class WeatherControllerBase : Controller {
         }
     }
     
-    [InjectAttribute("World")]
+    [uFrame.IOC.InjectAttribute("World")]
     public WorldViewModel World {
         get {
             return _World;
@@ -254,7 +256,7 @@ public class WeatherControllerBase : Controller {
         }
     }
     
-    [InjectAttribute("Weather")]
+    [uFrame.IOC.InjectAttribute("Weather")]
     public WeatherViewModel Weather {
         get {
             return _Weather;
@@ -264,46 +266,45 @@ public class WeatherControllerBase : Controller {
         }
     }
     
-    public System.Collections.Generic.IEnumerable<WeatherViewModel> WeatherViewModels {
+    public IEnumerable<WeatherViewModel> WeatherViewModels {
         get {
-            return WeatherManager.OfType<WeatherViewModel>();
+            return WeatherViewModelManager.OfType<WeatherViewModel>();
         }
     }
     
     public override void Setup() {
+        base.Setup();
         // This is called when the controller is created
-        this.EventAggregator.OnViewModelCreated<WeatherViewModel>().Subscribe(this.Initialize);;
-        this.EventAggregator.OnViewModelDestroyed<WeatherViewModel>().Subscribe(this.DisposingViewModel);;
     }
     
-    public override void Initialize(ViewModel viewModel) {
+    public override void Initialize(uFrame.MVVM.ViewModel viewModel) {
         base.Initialize(viewModel);
         // This is called when a viewmodel is created
         this.InitializeWeather(((WeatherViewModel)(viewModel)));
     }
     
     public virtual WeatherViewModel CreateWeather() {
-        return ((WeatherViewModel)(this.Create()));
+        return ((WeatherViewModel)(this.Create(Guid.NewGuid().ToString())));
     }
     
-    public override ViewModel CreateEmpty() {
+    public override uFrame.MVVM.ViewModel CreateEmpty() {
         return new WeatherViewModel(this.EventAggregator);
     }
     
     public virtual void InitializeWeather(WeatherViewModel viewModel) {
         // This is called when a WeatherViewModel is created
-        WeatherManager.Add(viewModel);
+        WeatherViewModelManager.Add(viewModel);
     }
     
-    public override void DisposingViewModel(ViewModel viewModel) {
+    public override void DisposingViewModel(uFrame.MVVM.ViewModel viewModel) {
         base.DisposingViewModel(viewModel);
-        WeatherManager.Remove(viewModel);
+        WeatherViewModelManager.Remove(viewModel);
     }
 }
 
-public class ChunkControllerBase : Controller {
+public class ChunkControllerBase : uFrame.MVVM.Controller {
     
-    private IViewModelManager _ChunkManager;
+    private uFrame.MVVM.IViewModelManager _ChunkViewModelManager;
     
     private TerrainViewModel _Terrain;
     
@@ -311,17 +312,17 @@ public class ChunkControllerBase : Controller {
     
     private WeatherViewModel _Weather;
     
-    [InjectAttribute("Chunk")]
-    public IViewModelManager ChunkManager {
+    [uFrame.IOC.InjectAttribute("Chunk")]
+    public uFrame.MVVM.IViewModelManager ChunkViewModelManager {
         get {
-            return _ChunkManager;
+            return _ChunkViewModelManager;
         }
         set {
-            _ChunkManager = value;
+            _ChunkViewModelManager = value;
         }
     }
     
-    [InjectAttribute("Terrain")]
+    [uFrame.IOC.InjectAttribute("Terrain")]
     public TerrainViewModel Terrain {
         get {
             return _Terrain;
@@ -331,7 +332,7 @@ public class ChunkControllerBase : Controller {
         }
     }
     
-    [InjectAttribute("World")]
+    [uFrame.IOC.InjectAttribute("World")]
     public WorldViewModel World {
         get {
             return _World;
@@ -341,7 +342,7 @@ public class ChunkControllerBase : Controller {
         }
     }
     
-    [InjectAttribute("Weather")]
+    [uFrame.IOC.InjectAttribute("Weather")]
     public WeatherViewModel Weather {
         get {
             return _Weather;
@@ -351,41 +352,40 @@ public class ChunkControllerBase : Controller {
         }
     }
     
-    public System.Collections.Generic.IEnumerable<ChunkViewModel> ChunkViewModels {
+    public IEnumerable<ChunkViewModel> ChunkViewModels {
         get {
-            return ChunkManager.OfType<ChunkViewModel>();
+            return ChunkViewModelManager.OfType<ChunkViewModel>();
         }
     }
     
     public override void Setup() {
+        base.Setup();
         // This is called when the controller is created
-        this.OnEvent<GenerateChunkCommand>().Subscribe(this.GenerateChunkHandler);
-        this.EventAggregator.OnViewModelCreated<ChunkViewModel>().Subscribe(this.Initialize);;
-        this.EventAggregator.OnViewModelDestroyed<ChunkViewModel>().Subscribe(this.DisposingViewModel);;
     }
     
-    public override void Initialize(ViewModel viewModel) {
+    public override void Initialize(uFrame.MVVM.ViewModel viewModel) {
         base.Initialize(viewModel);
         // This is called when a viewmodel is created
         this.InitializeChunk(((ChunkViewModel)(viewModel)));
     }
     
     public virtual ChunkViewModel CreateChunk() {
-        return ((ChunkViewModel)(this.Create()));
+        return ((ChunkViewModel)(this.Create(Guid.NewGuid().ToString())));
     }
     
-    public override ViewModel CreateEmpty() {
+    public override uFrame.MVVM.ViewModel CreateEmpty() {
         return new ChunkViewModel(this.EventAggregator);
     }
     
     public virtual void InitializeChunk(ChunkViewModel viewModel) {
         // This is called when a ChunkViewModel is created
-        ChunkManager.Add(viewModel);
+        viewModel.GenerateChunk.Action = this.GenerateChunkHandler;
+        ChunkViewModelManager.Add(viewModel);
     }
     
-    public override void DisposingViewModel(ViewModel viewModel) {
+    public override void DisposingViewModel(uFrame.MVVM.ViewModel viewModel) {
         base.DisposingViewModel(viewModel);
-        ChunkManager.Remove(viewModel);
+        ChunkViewModelManager.Remove(viewModel);
     }
     
     public virtual void GenerateChunk(ChunkViewModel viewModel) {
@@ -396,9 +396,9 @@ public class ChunkControllerBase : Controller {
     }
 }
 
-public class WorldControllerBase : Controller {
+public class WorldControllerBase : uFrame.MVVM.Controller {
     
-    private IViewModelManager _WorldManager;
+    private uFrame.MVVM.IViewModelManager _WorldViewModelManager;
     
     private TerrainViewModel _Terrain;
     
@@ -406,17 +406,17 @@ public class WorldControllerBase : Controller {
     
     private WeatherViewModel _Weather;
     
-    [InjectAttribute("World")]
-    public IViewModelManager WorldManager {
+    [uFrame.IOC.InjectAttribute("World")]
+    public uFrame.MVVM.IViewModelManager WorldViewModelManager {
         get {
-            return _WorldManager;
+            return _WorldViewModelManager;
         }
         set {
-            _WorldManager = value;
+            _WorldViewModelManager = value;
         }
     }
     
-    [InjectAttribute("Terrain")]
+    [uFrame.IOC.InjectAttribute("Terrain")]
     public TerrainViewModel Terrain {
         get {
             return _Terrain;
@@ -426,7 +426,7 @@ public class WorldControllerBase : Controller {
         }
     }
     
-    [InjectAttribute("World")]
+    [uFrame.IOC.InjectAttribute("World")]
     public WorldViewModel World {
         get {
             return _World;
@@ -436,7 +436,7 @@ public class WorldControllerBase : Controller {
         }
     }
     
-    [InjectAttribute("Weather")]
+    [uFrame.IOC.InjectAttribute("Weather")]
     public WeatherViewModel Weather {
         get {
             return _Weather;
@@ -446,41 +446,40 @@ public class WorldControllerBase : Controller {
         }
     }
     
-    public System.Collections.Generic.IEnumerable<WorldViewModel> WorldViewModels {
+    public IEnumerable<WorldViewModel> WorldViewModels {
         get {
-            return WorldManager.OfType<WorldViewModel>();
+            return WorldViewModelManager.OfType<WorldViewModel>();
         }
     }
     
     public override void Setup() {
+        base.Setup();
         // This is called when the controller is created
-        this.OnEvent<GenerateWorldCommand>().Subscribe(this.GenerateWorldHandler);
-        this.EventAggregator.OnViewModelCreated<WorldViewModel>().Subscribe(this.Initialize);;
-        this.EventAggregator.OnViewModelDestroyed<WorldViewModel>().Subscribe(this.DisposingViewModel);;
     }
     
-    public override void Initialize(ViewModel viewModel) {
+    public override void Initialize(uFrame.MVVM.ViewModel viewModel) {
         base.Initialize(viewModel);
         // This is called when a viewmodel is created
         this.InitializeWorld(((WorldViewModel)(viewModel)));
     }
     
     public virtual WorldViewModel CreateWorld() {
-        return ((WorldViewModel)(this.Create()));
+        return ((WorldViewModel)(this.Create(Guid.NewGuid().ToString())));
     }
     
-    public override ViewModel CreateEmpty() {
+    public override uFrame.MVVM.ViewModel CreateEmpty() {
         return new WorldViewModel(this.EventAggregator);
     }
     
     public virtual void InitializeWorld(WorldViewModel viewModel) {
         // This is called when a WorldViewModel is created
-        WorldManager.Add(viewModel);
+        viewModel.GenerateWorld.Action = this.GenerateWorldHandler;
+        WorldViewModelManager.Add(viewModel);
     }
     
-    public override void DisposingViewModel(ViewModel viewModel) {
+    public override void DisposingViewModel(uFrame.MVVM.ViewModel viewModel) {
         base.DisposingViewModel(viewModel);
-        WorldManager.Remove(viewModel);
+        WorldViewModelManager.Remove(viewModel);
     }
     
     public virtual void GenerateWorld(WorldViewModel viewModel) {
@@ -488,311 +487,737 @@ public class WorldControllerBase : Controller {
     
     public virtual void GenerateWorldHandler(GenerateWorldCommand command) {
         this.GenerateWorld(command.Sender as WorldViewModel);
+        this.Publish(command);
     }
 }
 
-public class PlayerControllerBase : Controller {
+public class PlayerControllerBase : uFrame.MVVM.Controller {
     
-    private IViewModelManager _PlayerManager;
+    private uFrame.MVVM.IViewModelManager _PlayerViewModelManager;
     
-    [InjectAttribute("Player")]
-    public IViewModelManager PlayerManager {
+    private TerrainViewModel _Terrain;
+    
+    private WorldViewModel _World;
+    
+    private WeatherViewModel _Weather;
+    
+    [uFrame.IOC.InjectAttribute("Player")]
+    public uFrame.MVVM.IViewModelManager PlayerViewModelManager {
         get {
-            return _PlayerManager;
+            return _PlayerViewModelManager;
         }
         set {
-            _PlayerManager = value;
+            _PlayerViewModelManager = value;
         }
     }
     
-    public System.Collections.Generic.IEnumerable<PlayerViewModel> PlayerViewModels {
+    [uFrame.IOC.InjectAttribute("Terrain")]
+    public TerrainViewModel Terrain {
         get {
-            return PlayerManager.OfType<PlayerViewModel>();
+            return _Terrain;
+        }
+        set {
+            _Terrain = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("World")]
+    public WorldViewModel World {
+        get {
+            return _World;
+        }
+        set {
+            _World = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("Weather")]
+    public WeatherViewModel Weather {
+        get {
+            return _Weather;
+        }
+        set {
+            _Weather = value;
+        }
+    }
+    
+    public IEnumerable<PlayerViewModel> PlayerViewModels {
+        get {
+            return PlayerViewModelManager.OfType<PlayerViewModel>();
         }
     }
     
     public override void Setup() {
+        base.Setup();
         // This is called when the controller is created
-        this.EventAggregator.OnViewModelCreated<PlayerViewModel>().Subscribe(this.Initialize);;
-        this.EventAggregator.OnViewModelDestroyed<PlayerViewModel>().Subscribe(this.DisposingViewModel);;
     }
     
-    public override void Initialize(ViewModel viewModel) {
+    public override void Initialize(uFrame.MVVM.ViewModel viewModel) {
         base.Initialize(viewModel);
         // This is called when a viewmodel is created
         this.InitializePlayer(((PlayerViewModel)(viewModel)));
     }
     
     public virtual PlayerViewModel CreatePlayer() {
-        return ((PlayerViewModel)(this.Create()));
+        return ((PlayerViewModel)(this.Create(Guid.NewGuid().ToString())));
     }
     
-    public override ViewModel CreateEmpty() {
+    public override uFrame.MVVM.ViewModel CreateEmpty() {
         return new PlayerViewModel(this.EventAggregator);
     }
     
     public virtual void InitializePlayer(PlayerViewModel viewModel) {
         // This is called when a PlayerViewModel is created
-        PlayerManager.Add(viewModel);
+        PlayerViewModelManager.Add(viewModel);
     }
     
-    public override void DisposingViewModel(ViewModel viewModel) {
+    public override void DisposingViewModel(uFrame.MVVM.ViewModel viewModel) {
         base.DisposingViewModel(viewModel);
-        PlayerManager.Remove(viewModel);
+        PlayerViewModelManager.Remove(viewModel);
     }
 }
 
-public class FactionControllerBase : Controller {
+public class FactionControllerBase : uFrame.MVVM.Controller {
     
-    private IViewModelManager _FactionManager;
+    private uFrame.MVVM.IViewModelManager _FactionViewModelManager;
     
-    [InjectAttribute("Faction")]
-    public IViewModelManager FactionManager {
+    private TerrainViewModel _Terrain;
+    
+    private WorldViewModel _World;
+    
+    private WeatherViewModel _Weather;
+    
+    [uFrame.IOC.InjectAttribute("Faction")]
+    public uFrame.MVVM.IViewModelManager FactionViewModelManager {
         get {
-            return _FactionManager;
+            return _FactionViewModelManager;
         }
         set {
-            _FactionManager = value;
+            _FactionViewModelManager = value;
         }
     }
     
-    public System.Collections.Generic.IEnumerable<FactionViewModel> FactionViewModels {
+    [uFrame.IOC.InjectAttribute("Terrain")]
+    public TerrainViewModel Terrain {
         get {
-            return FactionManager.OfType<FactionViewModel>();
+            return _Terrain;
+        }
+        set {
+            _Terrain = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("World")]
+    public WorldViewModel World {
+        get {
+            return _World;
+        }
+        set {
+            _World = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("Weather")]
+    public WeatherViewModel Weather {
+        get {
+            return _Weather;
+        }
+        set {
+            _Weather = value;
+        }
+    }
+    
+    public IEnumerable<FactionViewModel> FactionViewModels {
+        get {
+            return FactionViewModelManager.OfType<FactionViewModel>();
         }
     }
     
     public override void Setup() {
+        base.Setup();
         // This is called when the controller is created
-        this.EventAggregator.OnViewModelCreated<FactionViewModel>().Subscribe(this.Initialize);;
-        this.EventAggregator.OnViewModelDestroyed<FactionViewModel>().Subscribe(this.DisposingViewModel);;
     }
     
-    public override void Initialize(ViewModel viewModel) {
+    public override void Initialize(uFrame.MVVM.ViewModel viewModel) {
         base.Initialize(viewModel);
         // This is called when a viewmodel is created
         this.InitializeFaction(((FactionViewModel)(viewModel)));
     }
     
     public virtual FactionViewModel CreateFaction() {
-        return ((FactionViewModel)(this.Create()));
+        return ((FactionViewModel)(this.Create(Guid.NewGuid().ToString())));
     }
     
-    public override ViewModel CreateEmpty() {
+    public override uFrame.MVVM.ViewModel CreateEmpty() {
         return new FactionViewModel(this.EventAggregator);
     }
     
     public virtual void InitializeFaction(FactionViewModel viewModel) {
         // This is called when a FactionViewModel is created
-        FactionManager.Add(viewModel);
+        FactionViewModelManager.Add(viewModel);
     }
     
-    public override void DisposingViewModel(ViewModel viewModel) {
+    public override void DisposingViewModel(uFrame.MVVM.ViewModel viewModel) {
         base.DisposingViewModel(viewModel);
-        FactionManager.Remove(viewModel);
+        FactionViewModelManager.Remove(viewModel);
     }
 }
 
-public class UnitControllerBase : Controller {
+public class UnitControllerBase : uFrame.MVVM.Controller {
     
-    private IViewModelManager _UnitManager;
+    private uFrame.MVVM.IViewModelManager _UnitViewModelManager;
     
-    [InjectAttribute("Unit")]
-    public IViewModelManager UnitManager {
+    private TerrainViewModel _Terrain;
+    
+    private WorldViewModel _World;
+    
+    private WeatherViewModel _Weather;
+    
+    [uFrame.IOC.InjectAttribute("Unit")]
+    public uFrame.MVVM.IViewModelManager UnitViewModelManager {
         get {
-            return _UnitManager;
+            return _UnitViewModelManager;
         }
         set {
-            _UnitManager = value;
+            _UnitViewModelManager = value;
         }
     }
     
-    public System.Collections.Generic.IEnumerable<UnitViewModel> UnitViewModels {
+    [uFrame.IOC.InjectAttribute("Terrain")]
+    public TerrainViewModel Terrain {
         get {
-            return UnitManager.OfType<UnitViewModel>();
+            return _Terrain;
+        }
+        set {
+            _Terrain = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("World")]
+    public WorldViewModel World {
+        get {
+            return _World;
+        }
+        set {
+            _World = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("Weather")]
+    public WeatherViewModel Weather {
+        get {
+            return _Weather;
+        }
+        set {
+            _Weather = value;
+        }
+    }
+    
+    public IEnumerable<UnitViewModel> UnitViewModels {
+        get {
+            return UnitViewModelManager.OfType<UnitViewModel>();
         }
     }
     
     public override void Setup() {
+        base.Setup();
         // This is called when the controller is created
-        this.EventAggregator.OnViewModelCreated<UnitViewModel>().Subscribe(this.Initialize);;
-        this.EventAggregator.OnViewModelDestroyed<UnitViewModel>().Subscribe(this.DisposingViewModel);;
     }
     
-    public override void Initialize(ViewModel viewModel) {
+    public override void Initialize(uFrame.MVVM.ViewModel viewModel) {
         base.Initialize(viewModel);
         // This is called when a viewmodel is created
         this.InitializeUnit(((UnitViewModel)(viewModel)));
     }
     
     public virtual UnitViewModel CreateUnit() {
-        return ((UnitViewModel)(this.Create()));
+        return ((UnitViewModel)(this.Create(Guid.NewGuid().ToString())));
     }
     
-    public override ViewModel CreateEmpty() {
+    public override uFrame.MVVM.ViewModel CreateEmpty() {
         return new UnitViewModel(this.EventAggregator);
     }
     
     public virtual void InitializeUnit(UnitViewModel viewModel) {
         // This is called when a UnitViewModel is created
-        UnitManager.Add(viewModel);
+        UnitViewModelManager.Add(viewModel);
     }
     
-    public override void DisposingViewModel(ViewModel viewModel) {
+    public override void DisposingViewModel(uFrame.MVVM.ViewModel viewModel) {
         base.DisposingViewModel(viewModel);
-        UnitManager.Remove(viewModel);
+        UnitViewModelManager.Remove(viewModel);
     }
 }
 
-public class SettlmentControllerBase : Controller {
+public class SettlmentControllerBase : uFrame.MVVM.Controller {
     
-    private IViewModelManager _SettlmentManager;
+    private uFrame.MVVM.IViewModelManager _SettlmentViewModelManager;
     
-    [InjectAttribute("Settlment")]
-    public IViewModelManager SettlmentManager {
+    private TerrainViewModel _Terrain;
+    
+    private WorldViewModel _World;
+    
+    private WeatherViewModel _Weather;
+    
+    [uFrame.IOC.InjectAttribute("Settlment")]
+    public uFrame.MVVM.IViewModelManager SettlmentViewModelManager {
         get {
-            return _SettlmentManager;
+            return _SettlmentViewModelManager;
         }
         set {
-            _SettlmentManager = value;
+            _SettlmentViewModelManager = value;
         }
     }
     
-    public System.Collections.Generic.IEnumerable<SettlmentViewModel> SettlmentViewModels {
+    [uFrame.IOC.InjectAttribute("Terrain")]
+    public TerrainViewModel Terrain {
         get {
-            return SettlmentManager.OfType<SettlmentViewModel>();
+            return _Terrain;
+        }
+        set {
+            _Terrain = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("World")]
+    public WorldViewModel World {
+        get {
+            return _World;
+        }
+        set {
+            _World = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("Weather")]
+    public WeatherViewModel Weather {
+        get {
+            return _Weather;
+        }
+        set {
+            _Weather = value;
+        }
+    }
+    
+    public IEnumerable<SettlmentViewModel> SettlmentViewModels {
+        get {
+            return SettlmentViewModelManager.OfType<SettlmentViewModel>();
         }
     }
     
     public override void Setup() {
+        base.Setup();
         // This is called when the controller is created
-        this.EventAggregator.OnViewModelCreated<SettlmentViewModel>().Subscribe(this.Initialize);;
-        this.EventAggregator.OnViewModelDestroyed<SettlmentViewModel>().Subscribe(this.DisposingViewModel);;
     }
     
-    public override void Initialize(ViewModel viewModel) {
+    public override void Initialize(uFrame.MVVM.ViewModel viewModel) {
         base.Initialize(viewModel);
         // This is called when a viewmodel is created
         this.InitializeSettlment(((SettlmentViewModel)(viewModel)));
     }
     
     public virtual SettlmentViewModel CreateSettlment() {
-        return ((SettlmentViewModel)(this.Create()));
+        return ((SettlmentViewModel)(this.Create(Guid.NewGuid().ToString())));
     }
     
-    public override ViewModel CreateEmpty() {
+    public override uFrame.MVVM.ViewModel CreateEmpty() {
         return new SettlmentViewModel(this.EventAggregator);
     }
     
     public virtual void InitializeSettlment(SettlmentViewModel viewModel) {
         // This is called when a SettlmentViewModel is created
-        SettlmentManager.Add(viewModel);
+        SettlmentViewModelManager.Add(viewModel);
     }
     
-    public override void DisposingViewModel(ViewModel viewModel) {
+    public override void DisposingViewModel(uFrame.MVVM.ViewModel viewModel) {
         base.DisposingViewModel(viewModel);
-        SettlmentManager.Remove(viewModel);
+        SettlmentViewModelManager.Remove(viewModel);
     }
 }
 
-public class StructureControllerBase : Controller {
+public class StructureControllerBase : uFrame.MVVM.Controller {
     
-    private IViewModelManager _StructureManager;
+    private uFrame.MVVM.IViewModelManager _StructureViewModelManager;
     
-    [InjectAttribute("Structure")]
-    public IViewModelManager StructureManager {
+    private TerrainViewModel _Terrain;
+    
+    private WorldViewModel _World;
+    
+    private WeatherViewModel _Weather;
+    
+    [uFrame.IOC.InjectAttribute("Structure")]
+    public uFrame.MVVM.IViewModelManager StructureViewModelManager {
         get {
-            return _StructureManager;
+            return _StructureViewModelManager;
         }
         set {
-            _StructureManager = value;
+            _StructureViewModelManager = value;
         }
     }
     
-    public System.Collections.Generic.IEnumerable<StructureViewModel> StructureViewModels {
+    [uFrame.IOC.InjectAttribute("Terrain")]
+    public TerrainViewModel Terrain {
         get {
-            return StructureManager.OfType<StructureViewModel>();
+            return _Terrain;
+        }
+        set {
+            _Terrain = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("World")]
+    public WorldViewModel World {
+        get {
+            return _World;
+        }
+        set {
+            _World = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("Weather")]
+    public WeatherViewModel Weather {
+        get {
+            return _Weather;
+        }
+        set {
+            _Weather = value;
+        }
+    }
+    
+    public IEnumerable<StructureViewModel> StructureViewModels {
+        get {
+            return StructureViewModelManager.OfType<StructureViewModel>();
         }
     }
     
     public override void Setup() {
+        base.Setup();
         // This is called when the controller is created
-        this.EventAggregator.OnViewModelCreated<StructureViewModel>().Subscribe(this.Initialize);;
-        this.EventAggregator.OnViewModelDestroyed<StructureViewModel>().Subscribe(this.DisposingViewModel);;
     }
     
-    public override void Initialize(ViewModel viewModel) {
+    public override void Initialize(uFrame.MVVM.ViewModel viewModel) {
         base.Initialize(viewModel);
         // This is called when a viewmodel is created
         this.InitializeStructure(((StructureViewModel)(viewModel)));
     }
     
     public virtual StructureViewModel CreateStructure() {
-        return ((StructureViewModel)(this.Create()));
+        return ((StructureViewModel)(this.Create(Guid.NewGuid().ToString())));
     }
     
-    public override ViewModel CreateEmpty() {
+    public override uFrame.MVVM.ViewModel CreateEmpty() {
         return new StructureViewModel(this.EventAggregator);
     }
     
     public virtual void InitializeStructure(StructureViewModel viewModel) {
         // This is called when a StructureViewModel is created
-        StructureManager.Add(viewModel);
+        StructureViewModelManager.Add(viewModel);
     }
     
-    public override void DisposingViewModel(ViewModel viewModel) {
+    public override void DisposingViewModel(uFrame.MVVM.ViewModel viewModel) {
         base.DisposingViewModel(viewModel);
-        StructureManager.Remove(viewModel);
+        StructureViewModelManager.Remove(viewModel);
     }
 }
 
-public class HexStructureControllerBase : Controller {
+public class HexStructureControllerBase : uFrame.MVVM.Controller {
     
-    private IViewModelManager _HexStructureManager;
+    private uFrame.MVVM.IViewModelManager _HexStructureViewModelManager;
     
-    [InjectAttribute("HexStructure")]
-    public IViewModelManager HexStructureManager {
+    private TerrainViewModel _Terrain;
+    
+    private WorldViewModel _World;
+    
+    private WeatherViewModel _Weather;
+    
+    [uFrame.IOC.InjectAttribute("HexStructure")]
+    public uFrame.MVVM.IViewModelManager HexStructureViewModelManager {
         get {
-            return _HexStructureManager;
+            return _HexStructureViewModelManager;
         }
         set {
-            _HexStructureManager = value;
+            _HexStructureViewModelManager = value;
         }
     }
     
-    public System.Collections.Generic.IEnumerable<HexStructureViewModel> HexStructureViewModels {
+    [uFrame.IOC.InjectAttribute("Terrain")]
+    public TerrainViewModel Terrain {
         get {
-            return HexStructureManager.OfType<HexStructureViewModel>();
+            return _Terrain;
+        }
+        set {
+            _Terrain = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("World")]
+    public WorldViewModel World {
+        get {
+            return _World;
+        }
+        set {
+            _World = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("Weather")]
+    public WeatherViewModel Weather {
+        get {
+            return _Weather;
+        }
+        set {
+            _Weather = value;
+        }
+    }
+    
+    public IEnumerable<HexStructureViewModel> HexStructureViewModels {
+        get {
+            return HexStructureViewModelManager.OfType<HexStructureViewModel>();
         }
     }
     
     public override void Setup() {
+        base.Setup();
         // This is called when the controller is created
-        this.EventAggregator.OnViewModelCreated<HexStructureViewModel>().Subscribe(this.Initialize);;
-        this.EventAggregator.OnViewModelDestroyed<HexStructureViewModel>().Subscribe(this.DisposingViewModel);;
     }
     
-    public override void Initialize(ViewModel viewModel) {
+    public override void Initialize(uFrame.MVVM.ViewModel viewModel) {
         base.Initialize(viewModel);
         // This is called when a viewmodel is created
         this.InitializeHexStructure(((HexStructureViewModel)(viewModel)));
     }
     
     public virtual HexStructureViewModel CreateHexStructure() {
-        return ((HexStructureViewModel)(this.Create()));
+        return ((HexStructureViewModel)(this.Create(Guid.NewGuid().ToString())));
     }
     
-    public override ViewModel CreateEmpty() {
+    public override uFrame.MVVM.ViewModel CreateEmpty() {
         return new HexStructureViewModel(this.EventAggregator);
     }
     
     public virtual void InitializeHexStructure(HexStructureViewModel viewModel) {
         // This is called when a HexStructureViewModel is created
-        HexStructureManager.Add(viewModel);
+        HexStructureViewModelManager.Add(viewModel);
     }
     
-    public override void DisposingViewModel(ViewModel viewModel) {
+    public override void DisposingViewModel(uFrame.MVVM.ViewModel viewModel) {
         base.DisposingViewModel(viewModel);
-        HexStructureManager.Remove(viewModel);
+        HexStructureViewModelManager.Remove(viewModel);
+    }
+}
+
+public class GameTimeControllerBase : uFrame.MVVM.Controller {
+    
+    private uFrame.MVVM.IViewModelManager _GameTimeViewModelManager;
+    
+    private TerrainViewModel _Terrain;
+    
+    private WorldViewModel _World;
+    
+    private WeatherViewModel _Weather;
+    
+    [uFrame.IOC.InjectAttribute("GameTime")]
+    public uFrame.MVVM.IViewModelManager GameTimeViewModelManager {
+        get {
+            return _GameTimeViewModelManager;
+        }
+        set {
+            _GameTimeViewModelManager = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("Terrain")]
+    public TerrainViewModel Terrain {
+        get {
+            return _Terrain;
+        }
+        set {
+            _Terrain = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("World")]
+    public WorldViewModel World {
+        get {
+            return _World;
+        }
+        set {
+            _World = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("Weather")]
+    public WeatherViewModel Weather {
+        get {
+            return _Weather;
+        }
+        set {
+            _Weather = value;
+        }
+    }
+    
+    public IEnumerable<GameTimeViewModel> GameTimeViewModels {
+        get {
+            return GameTimeViewModelManager.OfType<GameTimeViewModel>();
+        }
+    }
+    
+    public override void Setup() {
+        base.Setup();
+        // This is called when the controller is created
+    }
+    
+    public override void Initialize(uFrame.MVVM.ViewModel viewModel) {
+        base.Initialize(viewModel);
+        // This is called when a viewmodel is created
+        this.InitializeGameTime(((GameTimeViewModel)(viewModel)));
+    }
+    
+    public virtual GameTimeViewModel CreateGameTime() {
+        return ((GameTimeViewModel)(this.Create(Guid.NewGuid().ToString())));
+    }
+    
+    public override uFrame.MVVM.ViewModel CreateEmpty() {
+        return new GameTimeViewModel(this.EventAggregator);
+    }
+    
+    public virtual void InitializeGameTime(GameTimeViewModel viewModel) {
+        // This is called when a GameTimeViewModel is created
+        viewModel.IncreaseGameSpeed.Action = this.IncreaseGameSpeedHandler;
+        viewModel.DecreaseGameSpeed.Action = this.DecreaseGameSpeedHandler;
+        viewModel.TogglePause.Action = this.TogglePauseHandler;
+        viewModel.GameTick.Action = this.GameTickHandler;
+        GameTimeViewModelManager.Add(viewModel);
+    }
+    
+    public override void DisposingViewModel(uFrame.MVVM.ViewModel viewModel) {
+        base.DisposingViewModel(viewModel);
+        GameTimeViewModelManager.Remove(viewModel);
+    }
+    
+    public virtual void IncreaseGameSpeed(GameTimeViewModel viewModel) {
+    }
+    
+    public virtual void DecreaseGameSpeed(GameTimeViewModel viewModel) {
+    }
+    
+    public virtual void TogglePause(GameTimeViewModel viewModel) {
+    }
+    
+    public virtual void IncreaseGameSpeedHandler(IncreaseGameSpeedCommand command) {
+        this.IncreaseGameSpeed(command.Sender as GameTimeViewModel);
+    }
+    
+    public virtual void DecreaseGameSpeedHandler(DecreaseGameSpeedCommand command) {
+        this.DecreaseGameSpeed(command.Sender as GameTimeViewModel);
+    }
+    
+    public virtual void TogglePauseHandler(TogglePauseCommand command) {
+        this.TogglePause(command.Sender as GameTimeViewModel);
+        this.Publish(command);
+    }
+    
+    public virtual void GameTickHandler(GameTickCommand command) {
+        this.GameTick(command.Sender as GameTimeViewModel, command.Argument);
+        this.Publish(command);
+    }
+    
+    public virtual void GameTick(GameTimeViewModel viewModel, GameTick arg) {
+    }
+}
+
+public class GameLogicControllerBase : uFrame.MVVM.Controller {
+    
+    private uFrame.MVVM.IViewModelManager _GameLogicViewModelManager;
+    
+    private TerrainViewModel _Terrain;
+    
+    private WorldViewModel _World;
+    
+    private WeatherViewModel _Weather;
+    
+    [uFrame.IOC.InjectAttribute("GameLogic")]
+    public uFrame.MVVM.IViewModelManager GameLogicViewModelManager {
+        get {
+            return _GameLogicViewModelManager;
+        }
+        set {
+            _GameLogicViewModelManager = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("Terrain")]
+    public TerrainViewModel Terrain {
+        get {
+            return _Terrain;
+        }
+        set {
+            _Terrain = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("World")]
+    public WorldViewModel World {
+        get {
+            return _World;
+        }
+        set {
+            _World = value;
+        }
+    }
+    
+    [uFrame.IOC.InjectAttribute("Weather")]
+    public WeatherViewModel Weather {
+        get {
+            return _Weather;
+        }
+        set {
+            _Weather = value;
+        }
+    }
+    
+    public IEnumerable<GameLogicViewModel> GameLogicViewModels {
+        get {
+            return GameLogicViewModelManager.OfType<GameLogicViewModel>();
+        }
+    }
+    
+    public override void Setup() {
+        base.Setup();
+        // This is called when the controller is created
+    }
+    
+    public override void Initialize(uFrame.MVVM.ViewModel viewModel) {
+        base.Initialize(viewModel);
+        // This is called when a viewmodel is created
+        this.InitializeGameLogic(((GameLogicViewModel)(viewModel)));
+    }
+    
+    public virtual GameLogicViewModel CreateGameLogic() {
+        return ((GameLogicViewModel)(this.Create(Guid.NewGuid().ToString())));
+    }
+    
+    public override uFrame.MVVM.ViewModel CreateEmpty() {
+        return new GameLogicViewModel(this.EventAggregator);
+    }
+    
+    public virtual void InitializeGameLogic(GameLogicViewModel viewModel) {
+        // This is called when a GameLogicViewModel is created
+        viewModel.StartGame.Action = this.StartGameHandler;
+        GameLogicViewModelManager.Add(viewModel);
+    }
+    
+    public override void DisposingViewModel(uFrame.MVVM.ViewModel viewModel) {
+        base.DisposingViewModel(viewModel);
+        GameLogicViewModelManager.Remove(viewModel);
+    }
+    
+    public virtual void StartGame(GameLogicViewModel viewModel) {
+    }
+    
+    public virtual void StartGameHandler(StartGameCommand command) {
+        this.StartGame(command.Sender as GameLogicViewModel);
+        this.Publish(command);
     }
 }

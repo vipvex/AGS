@@ -2,15 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using uFrame.Serialization;
+using uFrame.MVVM;
+using uFrame.Kernel;
+using uFrame.IOC;
 using UniRx;
 
 
 public class FactionController : FactionControllerBase {
-    
-    public override void Setup() {
-        base.Setup();
-        // This is called when the controller is created
-    }
     
     public override void InitializeFaction(FactionViewModel viewModel) {
         base.InitializeFaction(viewModel);

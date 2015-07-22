@@ -63,3 +63,14 @@ public enum VegetationState {
     
     AncientForest,
 }
+
+public enum Seasons {
+    
+    Spring,
+    
+    Summer,
+    
+    Autum,
+    
+    Winter,
+}

@@ -12,11 +12,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using uFrame.IOC;
+using uFrame.Kernel;
+using uFrame.MVVM;
+using uFrame.MVVM.Bindings;
+using uFrame.Serialization;
 using UnityEngine;
 using UniRx;
 
 
-public partial class TerrainViewModelBase : ViewModel {
+public partial class TerrainViewModelBase : uFrame.MVVM.ViewModel {
     
     private P<Int32> _WidthProperty;
     
@@ -98,7 +103,7 @@ public partial class TerrainViewModelBase : ViewModel {
     
     private Signal<ErosionCommand> _Erosion;
     
-    public TerrainViewModelBase(IEventAggregator aggregator) : 
+    public TerrainViewModelBase(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
     
@@ -779,9 +784,9 @@ public partial class TerrainViewModelBase : ViewModel {
     
     public override void Bind() {
         base.Bind();
-        this.GenerateTerrain = new Signal<GenerateTerrainCommand>(this, this.Aggregator);
-        this.GenerateChunks = new Signal<GenerateChunksCommand>(this, this.Aggregator);
-        this.Erosion = new Signal<ErosionCommand>(this, this.Aggregator);
+        this.GenerateTerrain = new Signal<GenerateTerrainCommand>(this);
+        this.GenerateChunks = new Signal<GenerateChunksCommand>(this);
+        this.Erosion = new Signal<ErosionCommand>(this);
         _WidthProperty = new P<Int32>(this, "Width");
         _HeightProperty = new P<Int32>(this, "Height");
         _ElevationsProperty = new P<Single>(this, "Elevations");
@@ -817,12 +822,8 @@ public partial class TerrainViewModelBase : ViewModel {
         _LatitudeTempCurveProperty = new P<AnimationCurve>(this, "LatitudeTempCurve");
         _TerrainTypesListProperty = new P<TerrainTypesList>(this, "TerrainTypesList");
         _AltitudeTempCurveProperty = new P<AnimationCurve>(this, "AltitudeTempCurve");
-    }
-    
-    protected virtual void WaterHexesCollectionChanged(System.Collections.Specialized.NotifyCollectionChangedEventArgs args) {
-    }
-    
-    protected virtual void RiverHexesCollectionChanged(System.Collections.Specialized.NotifyCollectionChangedEventArgs args) {
+        _WaterHexes = new ModelCollection<Hex>(this, "WaterHexes");
+        _RiverHexes = new ModelCollection<Hex>(this, "RiverHexes");
     }
     
     public override void Read(ISerializerStream stream) {
@@ -889,14 +890,14 @@ public partial class TerrainViewModelBase : ViewModel {
         stream.SerializeVector3("CameraPos", this.CameraPos);
     }
     
-    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+    protected override void FillCommands(System.Collections.Generic.List<uFrame.MVVM.ViewModelCommandInfo> list) {
         base.FillCommands(list);
         list.Add(new ViewModelCommandInfo("GenerateTerrain", GenerateTerrain) { ParameterType = typeof(void) });
-        list.Add(new ViewModelCommandInfo("GenerateChunks", GenerateChunks) { ParameterType = typeof(void) });
+        list.Add(new ViewModelCommandInfo("GenerateChunks", GenerateChunks) { ParameterType = typeof(GenerateChunksCommand) });
         list.Add(new ViewModelCommandInfo("Erosion", Erosion) { ParameterType = typeof(void) });
     }
     
-    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+    protected override void FillProperties(System.Collections.Generic.List<uFrame.MVVM.ViewModelPropertyInfo> list) {
         base.FillProperties(list);
         // PropertiesChildItem
         list.Add(new ViewModelPropertyInfo(_WidthProperty, false, false, false, false));
@@ -975,12 +976,12 @@ public partial class TerrainViewModelBase : ViewModel {
 
 public partial class TerrainViewModel {
     
-    public TerrainViewModel(IEventAggregator aggregator) : 
+    public TerrainViewModel(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
 }
 
-public partial class ResourceViewModelBase : ViewModel {
+public partial class ResourceViewModelBase : uFrame.MVVM.ViewModel {
     
     private P<String> _NameProperty;
     
@@ -988,7 +989,7 @@ public partial class ResourceViewModelBase : ViewModel {
     
     private P<Int32> _TotalAmountProperty;
     
-    public ResourceViewModelBase(IEventAggregator aggregator) : 
+    public ResourceViewModelBase(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
     
@@ -1065,11 +1066,11 @@ public partial class ResourceViewModelBase : ViewModel {
         stream.SerializeInt("TotalAmount", this.TotalAmount);
     }
     
-    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+    protected override void FillCommands(System.Collections.Generic.List<uFrame.MVVM.ViewModelCommandInfo> list) {
         base.FillCommands(list);
     }
     
-    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+    protected override void FillProperties(System.Collections.Generic.List<uFrame.MVVM.ViewModelPropertyInfo> list) {
         base.FillProperties(list);
         // PropertiesChildItem
         list.Add(new ViewModelPropertyInfo(_NameProperty, false, false, false, false));
@@ -1082,12 +1083,12 @@ public partial class ResourceViewModelBase : ViewModel {
 
 public partial class ResourceViewModel {
     
-    public ResourceViewModel(IEventAggregator aggregator) : 
+    public ResourceViewModel(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
 }
 
-public partial class WeatherViewModelBase : ViewModel {
+public partial class WeatherViewModelBase : uFrame.MVVM.ViewModel {
     
     private P<Int32> _BaseTemperatureProperty;
     
@@ -1097,7 +1098,7 @@ public partial class WeatherViewModelBase : ViewModel {
     
     private P<AnimationCurve> _AltitudeTempCurveProperty;
     
-    public WeatherViewModelBase(IEventAggregator aggregator) : 
+    public WeatherViewModelBase(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
     
@@ -1193,11 +1194,11 @@ public partial class WeatherViewModelBase : ViewModel {
         stream.SerializeInt("BaseHumidity", this.BaseHumidity);
     }
     
-    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+    protected override void FillCommands(System.Collections.Generic.List<uFrame.MVVM.ViewModelCommandInfo> list) {
         base.FillCommands(list);
     }
     
-    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+    protected override void FillProperties(System.Collections.Generic.List<uFrame.MVVM.ViewModelPropertyInfo> list) {
         base.FillProperties(list);
         // PropertiesChildItem
         list.Add(new ViewModelPropertyInfo(_BaseTemperatureProperty, false, false, false, false));
@@ -1212,12 +1213,12 @@ public partial class WeatherViewModelBase : ViewModel {
 
 public partial class WeatherViewModel {
     
-    public WeatherViewModel(IEventAggregator aggregator) : 
+    public WeatherViewModel(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
 }
 
-public partial class ChunkViewModelBase : ViewModel {
+public partial class ChunkViewModelBase : uFrame.MVVM.ViewModel {
     
     private P<Int32> _XIndexProperty;
     
@@ -1227,7 +1228,7 @@ public partial class ChunkViewModelBase : ViewModel {
     
     private Signal<GenerateChunkCommand> _GenerateChunk;
     
-    public ChunkViewModelBase(IEventAggregator aggregator) : 
+    public ChunkViewModelBase(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
     
@@ -1296,7 +1297,7 @@ public partial class ChunkViewModelBase : ViewModel {
     
     public override void Bind() {
         base.Bind();
-        this.GenerateChunk = new Signal<GenerateChunkCommand>(this, this.Aggregator);
+        this.GenerateChunk = new Signal<GenerateChunkCommand>(this);
         _XIndexProperty = new P<Int32>(this, "XIndex");
         _YIndexProperty = new P<Int32>(this, "YIndex");
         _PosProperty = new P<Vector3>(this, "Pos");
@@ -1316,12 +1317,12 @@ public partial class ChunkViewModelBase : ViewModel {
         stream.SerializeVector3("Pos", this.Pos);
     }
     
-    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+    protected override void FillCommands(System.Collections.Generic.List<uFrame.MVVM.ViewModelCommandInfo> list) {
         base.FillCommands(list);
         list.Add(new ViewModelCommandInfo("GenerateChunk", GenerateChunk) { ParameterType = typeof(void) });
     }
     
-    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+    protected override void FillProperties(System.Collections.Generic.List<uFrame.MVVM.ViewModelPropertyInfo> list) {
         base.FillProperties(list);
         // PropertiesChildItem
         list.Add(new ViewModelPropertyInfo(_XIndexProperty, false, false, false, false));
@@ -1334,18 +1335,18 @@ public partial class ChunkViewModelBase : ViewModel {
 
 public partial class ChunkViewModel {
     
-    public ChunkViewModel(IEventAggregator aggregator) : 
+    public ChunkViewModel(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
 }
 
-public partial class WorldViewModelBase : ViewModel {
+public partial class WorldViewModelBase : uFrame.MVVM.ViewModel {
     
     private P<Int32> _AgeProperty;
     
     private Signal<GenerateWorldCommand> _GenerateWorld;
     
-    public WorldViewModelBase(IEventAggregator aggregator) : 
+    public WorldViewModelBase(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
     
@@ -1378,7 +1379,7 @@ public partial class WorldViewModelBase : ViewModel {
     
     public override void Bind() {
         base.Bind();
-        this.GenerateWorld = new Signal<GenerateWorldCommand>(this, this.Aggregator);
+        this.GenerateWorld = new Signal<GenerateWorldCommand>(this);
         _AgeProperty = new P<Int32>(this, "Age");
     }
     
@@ -1392,12 +1393,12 @@ public partial class WorldViewModelBase : ViewModel {
         stream.SerializeInt("Age", this.Age);
     }
     
-    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+    protected override void FillCommands(System.Collections.Generic.List<uFrame.MVVM.ViewModelCommandInfo> list) {
         base.FillCommands(list);
         list.Add(new ViewModelCommandInfo("GenerateWorld", GenerateWorld) { ParameterType = typeof(void) });
     }
     
-    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+    protected override void FillProperties(System.Collections.Generic.List<uFrame.MVVM.ViewModelPropertyInfo> list) {
         base.FillProperties(list);
         // PropertiesChildItem
         list.Add(new ViewModelPropertyInfo(_AgeProperty, false, false, false, false));
@@ -1406,18 +1407,18 @@ public partial class WorldViewModelBase : ViewModel {
 
 public partial class WorldViewModel {
     
-    public WorldViewModel(IEventAggregator aggregator) : 
+    public WorldViewModel(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
 }
 
-public partial class PlayerViewModelBase : ViewModel {
+public partial class PlayerViewModelBase : uFrame.MVVM.ViewModel {
     
     private P<Hex> _SelectedHexProperty;
     
     private P<TerrainViewModel> _TerrainProperty;
     
-    public PlayerViewModelBase(IEventAggregator aggregator) : 
+    public PlayerViewModelBase(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
     
@@ -1473,11 +1474,11 @@ public partial class PlayerViewModelBase : ViewModel {
         if (stream.DeepSerialize) stream.SerializeObject("Terrain", this.Terrain);;
     }
     
-    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+    protected override void FillCommands(System.Collections.Generic.List<uFrame.MVVM.ViewModelCommandInfo> list) {
         base.FillCommands(list);
     }
     
-    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+    protected override void FillProperties(System.Collections.Generic.List<uFrame.MVVM.ViewModelPropertyInfo> list) {
         base.FillProperties(list);
         // PropertiesChildItem
         list.Add(new ViewModelPropertyInfo(_SelectedHexProperty, false, false, false, false));
@@ -1488,14 +1489,14 @@ public partial class PlayerViewModelBase : ViewModel {
 
 public partial class PlayerViewModel {
     
-    public PlayerViewModel(IEventAggregator aggregator) : 
+    public PlayerViewModel(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
 }
 
-public partial class FactionViewModelBase : ViewModel {
+public partial class FactionViewModelBase : uFrame.MVVM.ViewModel {
     
-    public FactionViewModelBase(IEventAggregator aggregator) : 
+    public FactionViewModelBase(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
     
@@ -1511,25 +1512,25 @@ public partial class FactionViewModelBase : ViewModel {
         base.Write(stream);
     }
     
-    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+    protected override void FillCommands(System.Collections.Generic.List<uFrame.MVVM.ViewModelCommandInfo> list) {
         base.FillCommands(list);
     }
     
-    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+    protected override void FillProperties(System.Collections.Generic.List<uFrame.MVVM.ViewModelPropertyInfo> list) {
         base.FillProperties(list);
     }
 }
 
 public partial class FactionViewModel {
     
-    public FactionViewModel(IEventAggregator aggregator) : 
+    public FactionViewModel(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
 }
 
-public partial class UnitViewModelBase : ViewModel {
+public partial class UnitViewModelBase : uFrame.MVVM.ViewModel {
     
-    public UnitViewModelBase(IEventAggregator aggregator) : 
+    public UnitViewModelBase(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
     
@@ -1545,25 +1546,25 @@ public partial class UnitViewModelBase : ViewModel {
         base.Write(stream);
     }
     
-    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+    protected override void FillCommands(System.Collections.Generic.List<uFrame.MVVM.ViewModelCommandInfo> list) {
         base.FillCommands(list);
     }
     
-    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+    protected override void FillProperties(System.Collections.Generic.List<uFrame.MVVM.ViewModelPropertyInfo> list) {
         base.FillProperties(list);
     }
 }
 
 public partial class UnitViewModel {
     
-    public UnitViewModel(IEventAggregator aggregator) : 
+    public UnitViewModel(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
 }
 
-public partial class SettlmentViewModelBase : ViewModel {
+public partial class SettlmentViewModelBase : uFrame.MVVM.ViewModel {
     
-    public SettlmentViewModelBase(IEventAggregator aggregator) : 
+    public SettlmentViewModelBase(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
     
@@ -1579,25 +1580,25 @@ public partial class SettlmentViewModelBase : ViewModel {
         base.Write(stream);
     }
     
-    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+    protected override void FillCommands(System.Collections.Generic.List<uFrame.MVVM.ViewModelCommandInfo> list) {
         base.FillCommands(list);
     }
     
-    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+    protected override void FillProperties(System.Collections.Generic.List<uFrame.MVVM.ViewModelPropertyInfo> list) {
         base.FillProperties(list);
     }
 }
 
 public partial class SettlmentViewModel {
     
-    public SettlmentViewModel(IEventAggregator aggregator) : 
+    public SettlmentViewModel(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
 }
 
-public partial class StructureViewModelBase : ViewModel {
+public partial class StructureViewModelBase : uFrame.MVVM.ViewModel {
     
-    public StructureViewModelBase(IEventAggregator aggregator) : 
+    public StructureViewModelBase(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
     
@@ -1613,25 +1614,25 @@ public partial class StructureViewModelBase : ViewModel {
         base.Write(stream);
     }
     
-    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+    protected override void FillCommands(System.Collections.Generic.List<uFrame.MVVM.ViewModelCommandInfo> list) {
         base.FillCommands(list);
     }
     
-    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+    protected override void FillProperties(System.Collections.Generic.List<uFrame.MVVM.ViewModelPropertyInfo> list) {
         base.FillProperties(list);
     }
 }
 
 public partial class StructureViewModel {
     
-    public StructureViewModel(IEventAggregator aggregator) : 
+    public StructureViewModel(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
 }
 
-public partial class HexStructureViewModelBase : ViewModel {
+public partial class HexStructureViewModelBase : uFrame.MVVM.ViewModel {
     
-    public HexStructureViewModelBase(IEventAggregator aggregator) : 
+    public HexStructureViewModelBase(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
     
@@ -1647,18 +1648,301 @@ public partial class HexStructureViewModelBase : ViewModel {
         base.Write(stream);
     }
     
-    protected override void FillCommands(System.Collections.Generic.List<ViewModelCommandInfo> list) {
+    protected override void FillCommands(System.Collections.Generic.List<uFrame.MVVM.ViewModelCommandInfo> list) {
         base.FillCommands(list);
     }
     
-    protected override void FillProperties(System.Collections.Generic.List<ViewModelPropertyInfo> list) {
+    protected override void FillProperties(System.Collections.Generic.List<uFrame.MVVM.ViewModelPropertyInfo> list) {
         base.FillProperties(list);
     }
 }
 
 public partial class HexStructureViewModel {
     
-    public HexStructureViewModel(IEventAggregator aggregator) : 
+    public HexStructureViewModel(uFrame.Kernel.IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+}
+
+public partial class GameTimeViewModelBase : uFrame.MVVM.ViewModel {
+    
+    private P<Int32> _YearProperty;
+    
+    private P<Int32> _MonthProperty;
+    
+    private P<Int32> _DayProperty;
+    
+    private P<Seasons> _SeasonProperty;
+    
+    private P<Int32> _GameSpeedProperty;
+    
+    private P<Boolean> _PausedProperty;
+    
+    private Signal<IncreaseGameSpeedCommand> _IncreaseGameSpeed;
+    
+    private Signal<DecreaseGameSpeedCommand> _DecreaseGameSpeed;
+    
+    private Signal<TogglePauseCommand> _TogglePause;
+    
+    private Signal<GameTickCommand> _GameTick;
+    
+    public GameTimeViewModelBase(uFrame.Kernel.IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+    
+    public virtual P<Int32> YearProperty {
+        get {
+            return _YearProperty;
+        }
+        set {
+            _YearProperty = value;
+        }
+    }
+    
+    public virtual P<Int32> MonthProperty {
+        get {
+            return _MonthProperty;
+        }
+        set {
+            _MonthProperty = value;
+        }
+    }
+    
+    public virtual P<Int32> DayProperty {
+        get {
+            return _DayProperty;
+        }
+        set {
+            _DayProperty = value;
+        }
+    }
+    
+    public virtual P<Seasons> SeasonProperty {
+        get {
+            return _SeasonProperty;
+        }
+        set {
+            _SeasonProperty = value;
+        }
+    }
+    
+    public virtual P<Int32> GameSpeedProperty {
+        get {
+            return _GameSpeedProperty;
+        }
+        set {
+            _GameSpeedProperty = value;
+        }
+    }
+    
+    public virtual P<Boolean> PausedProperty {
+        get {
+            return _PausedProperty;
+        }
+        set {
+            _PausedProperty = value;
+        }
+    }
+    
+    public virtual Int32 Year {
+        get {
+            return YearProperty.Value;
+        }
+        set {
+            YearProperty.Value = value;
+        }
+    }
+    
+    public virtual Int32 Month {
+        get {
+            return MonthProperty.Value;
+        }
+        set {
+            MonthProperty.Value = value;
+        }
+    }
+    
+    public virtual Int32 Day {
+        get {
+            return DayProperty.Value;
+        }
+        set {
+            DayProperty.Value = value;
+        }
+    }
+    
+    public virtual Seasons Season {
+        get {
+            return SeasonProperty.Value;
+        }
+        set {
+            SeasonProperty.Value = value;
+        }
+    }
+    
+    public virtual Int32 GameSpeed {
+        get {
+            return GameSpeedProperty.Value;
+        }
+        set {
+            GameSpeedProperty.Value = value;
+        }
+    }
+    
+    public virtual Boolean Paused {
+        get {
+            return PausedProperty.Value;
+        }
+        set {
+            PausedProperty.Value = value;
+        }
+    }
+    
+    public virtual Signal<IncreaseGameSpeedCommand> IncreaseGameSpeed {
+        get {
+            return _IncreaseGameSpeed;
+        }
+        set {
+            _IncreaseGameSpeed = value;
+        }
+    }
+    
+    public virtual Signal<DecreaseGameSpeedCommand> DecreaseGameSpeed {
+        get {
+            return _DecreaseGameSpeed;
+        }
+        set {
+            _DecreaseGameSpeed = value;
+        }
+    }
+    
+    public virtual Signal<TogglePauseCommand> TogglePause {
+        get {
+            return _TogglePause;
+        }
+        set {
+            _TogglePause = value;
+        }
+    }
+    
+    public virtual Signal<GameTickCommand> GameTick {
+        get {
+            return _GameTick;
+        }
+        set {
+            _GameTick = value;
+        }
+    }
+    
+    public override void Bind() {
+        base.Bind();
+        this.IncreaseGameSpeed = new Signal<IncreaseGameSpeedCommand>(this);
+        this.DecreaseGameSpeed = new Signal<DecreaseGameSpeedCommand>(this);
+        this.TogglePause = new Signal<TogglePauseCommand>(this);
+        this.GameTick = new Signal<GameTickCommand>(this);
+        _YearProperty = new P<Int32>(this, "Year");
+        _MonthProperty = new P<Int32>(this, "Month");
+        _DayProperty = new P<Int32>(this, "Day");
+        _SeasonProperty = new P<Seasons>(this, "Season");
+        _GameSpeedProperty = new P<Int32>(this, "GameSpeed");
+        _PausedProperty = new P<Boolean>(this, "Paused");
+    }
+    
+    public override void Read(ISerializerStream stream) {
+        base.Read(stream);
+        this.Year = stream.DeserializeInt("Year");;
+        this.Month = stream.DeserializeInt("Month");;
+        this.Day = stream.DeserializeInt("Day");;
+        this.Season = (Seasons)stream.DeserializeInt("Season");;
+        this.GameSpeed = stream.DeserializeInt("GameSpeed");;
+        this.Paused = stream.DeserializeBool("Paused");;
+    }
+    
+    public override void Write(ISerializerStream stream) {
+        base.Write(stream);
+        stream.SerializeInt("Year", this.Year);
+        stream.SerializeInt("Month", this.Month);
+        stream.SerializeInt("Day", this.Day);
+        stream.SerializeInt("Season", (int)this.Season);;
+        stream.SerializeInt("GameSpeed", this.GameSpeed);
+        stream.SerializeBool("Paused", this.Paused);
+    }
+    
+    protected override void FillCommands(System.Collections.Generic.List<uFrame.MVVM.ViewModelCommandInfo> list) {
+        base.FillCommands(list);
+        list.Add(new ViewModelCommandInfo("IncreaseGameSpeed", IncreaseGameSpeed) { ParameterType = typeof(void) });
+        list.Add(new ViewModelCommandInfo("DecreaseGameSpeed", DecreaseGameSpeed) { ParameterType = typeof(void) });
+        list.Add(new ViewModelCommandInfo("TogglePause", TogglePause) { ParameterType = typeof(void) });
+        list.Add(new ViewModelCommandInfo("GameTick", GameTick) { ParameterType = typeof(GameTick) });
+    }
+    
+    protected override void FillProperties(System.Collections.Generic.List<uFrame.MVVM.ViewModelPropertyInfo> list) {
+        base.FillProperties(list);
+        // PropertiesChildItem
+        list.Add(new ViewModelPropertyInfo(_YearProperty, false, false, false, false));
+        // PropertiesChildItem
+        list.Add(new ViewModelPropertyInfo(_MonthProperty, false, false, false, false));
+        // PropertiesChildItem
+        list.Add(new ViewModelPropertyInfo(_DayProperty, false, false, false, false));
+        // PropertiesChildItem
+        list.Add(new ViewModelPropertyInfo(_SeasonProperty, false, false, true, false));
+        // PropertiesChildItem
+        list.Add(new ViewModelPropertyInfo(_GameSpeedProperty, false, false, false, false));
+        // PropertiesChildItem
+        list.Add(new ViewModelPropertyInfo(_PausedProperty, false, false, false, false));
+    }
+}
+
+public partial class GameTimeViewModel {
+    
+    public GameTimeViewModel(uFrame.Kernel.IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+}
+
+public partial class GameLogicViewModelBase : uFrame.MVVM.ViewModel {
+    
+    private Signal<StartGameCommand> _StartGame;
+    
+    public GameLogicViewModelBase(uFrame.Kernel.IEventAggregator aggregator) : 
+            base(aggregator) {
+    }
+    
+    public virtual Signal<StartGameCommand> StartGame {
+        get {
+            return _StartGame;
+        }
+        set {
+            _StartGame = value;
+        }
+    }
+    
+    public override void Bind() {
+        base.Bind();
+        this.StartGame = new Signal<StartGameCommand>(this);
+    }
+    
+    public override void Read(ISerializerStream stream) {
+        base.Read(stream);
+    }
+    
+    public override void Write(ISerializerStream stream) {
+        base.Write(stream);
+    }
+    
+    protected override void FillCommands(System.Collections.Generic.List<uFrame.MVVM.ViewModelCommandInfo> list) {
+        base.FillCommands(list);
+        list.Add(new ViewModelCommandInfo("StartGame", StartGame) { ParameterType = typeof(void) });
+    }
+    
+    protected override void FillProperties(System.Collections.Generic.List<uFrame.MVVM.ViewModelPropertyInfo> list) {
+        base.FillProperties(list);
+    }
+}
+
+public partial class GameLogicViewModel {
+    
+    public GameLogicViewModel(uFrame.Kernel.IEventAggregator aggregator) : 
             base(aggregator) {
     }
 }

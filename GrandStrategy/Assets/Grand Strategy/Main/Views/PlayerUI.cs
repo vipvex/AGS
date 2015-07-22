@@ -2,31 +2,44 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using uFrame.Kernel;
+using uFrame.MVVM;
+using uFrame.MVVM.Services;
+using uFrame.MVVM.Bindings;
+using uFrame.Serialization;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class PlayerUI : PlayerUIBase 
-{
+public class PlayerUI : PlayerUIBase {
+    
+    
+    protected override void InitializeViewModel(uFrame.MVVM.ViewModel model) {
+        base.InitializeViewModel(model);
+        // NOTE: this method is only invoked if the 'Initialize ViewModel' is checked in the inspector.
+        // var vm = model as PlayerViewModel;
+        // This method is invoked when applying the data from the inspector to the viewmodel.  Add any view-specific customizations here.
+    }
+    
+    public override void Bind() {
+        base.Bind();
+        // Use this.Player to access the viewmodel.
+        // Use this method to subscribe to the view-model.
+        // Any designer bindings are created in the base implementation.
+    }
+
+
 
     public Image ToolTip;
     public Text ToolTipText;
 
     public Text unitName;
 
-
-    protected override void InitializeViewModel(ViewModel model) {
-        base.InitializeViewModel(model);
-    }
-    
-    public override void Bind() {
-        base.Bind();
-    }
-
+        
     void Update()
     {
-        if (Player.SelectedHex != null)
+        if (Player != null && Player.SelectedHex != null)
         {
             ToolTip.rectTransform.anchoredPosition = new Vector2(Input.mousePosition.x + ToolTip.rectTransform.sizeDelta.x / 2 + 10,
                                                                  Input.mousePosition.y - ToolTip.rectTransform.sizeDelta.y / 2 - 10);
@@ -61,5 +74,4 @@ public class PlayerUI : PlayerUIBase
             ToolTip.gameObject.SetActive(false);
         }
     }
-
 }

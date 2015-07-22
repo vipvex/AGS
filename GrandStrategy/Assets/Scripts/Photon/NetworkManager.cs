@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-
+/*
 public interface INetworkManager {
     void SendCommand(ViewModel viewModel, ICommand command);
     void AddViewModel(ViewModel viewModel);
@@ -65,3 +65,4 @@ public class NetworkManager : MonoBehaviour, INetworkManager
     }
 
 }
+*/

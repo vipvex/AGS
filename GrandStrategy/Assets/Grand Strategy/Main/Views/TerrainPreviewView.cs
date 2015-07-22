@@ -2,12 +2,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using uFrame.Kernel;
+using uFrame.MVVM;
+using uFrame.MVVM.Services;
+using uFrame.MVVM.Bindings;
+using uFrame.Serialization;
 using UniRx;
 using UnityEngine;
 
 
 public class TerrainPreviewView : TerrainPreviewViewBase {
-
 
     public Texture2D terrainHeightsTexture;
     public Texture2D terrainHexElevationsTexture;
@@ -23,23 +27,31 @@ public class TerrainPreviewView : TerrainPreviewViewBase {
     public float mouseSpeed = 10;
 
 
-
-    protected override void InitializeViewModel(ViewModel model)
+    protected override void InitializeViewModel(uFrame.MVVM.ViewModel model)
     {
         base.InitializeViewModel(model);
+        // NOTE: this method is only invoked if the 'Initialize ViewModel' is checked in the inspector.
+        // var vm = model as TerrainViewModel;
+        // This method is invoked when applying the data from the inspector to the viewmodel.  Add any view-specific customizations here.
     }
 
     public override void Bind()
     {
         base.Bind();
+        // Use this.Terrain to access the viewmodel.
+        // Use this method to subscribe to the view-model.
+        // Any designer bindings are created in the base implementation.
     }
+
 
     public void OnGUI()
     {
         //GUILayout.Label("Map Preview " + iterations);
         if (GUILayout.Button("Generate Terrain", GUILayout.Width(200), GUILayout.Height(75)))
         {
-            this.Publish(new GenerateTerrainCommand() { Sender = Terrain });
+            //this.Publish(new GenerateTerrainCommand() { Sender = Terrain });
+
+            ExecuteGenerateTerrain();
         }
 
         if (terrainHexElevationsTexture)
@@ -78,5 +90,5 @@ public class TerrainPreviewView : TerrainPreviewViewBase {
             terrainHexElevationsTexture = DiamondSquare.ToTexture2D(hexHeights, Terrain.SeaLevel / Terrain.Elevations);
             //terrainHeightsTexture = DiamondSquare.ToTexture2D(Terrain.TerrainHeights, Terrain.SeaLevel / Terrain.Elevations);
         }
-    }
+    }   
 }

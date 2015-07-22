@@ -2,16 +2,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using uFrame.IOC;
+using uFrame.Kernel;
+using uFrame.MVVM;
+using uFrame.MVVM.Bindings;
+using uFrame.Serialization;
 using UnityEngine;
 using UniRx;
 
 
-public partial class TerrainViewModel : TerrainViewModelBase {
-
-    public override void Bind() {
-        base.Bind();
-    }
-
+public partial class TerrainViewModel : TerrainViewModelBase 
+{
     public void GenerateTerrainHeights()
     {
         //Timer.Start("Terrain heighmap generation");
@@ -21,11 +22,11 @@ public partial class TerrainViewModel : TerrainViewModelBase {
         //Pathfinding.gridSize = TerrainWidth * TerrainWidth + 2;
 
         // Set corner heights
-        TerrainHeights[0, 0]          = 0.5f;
-        TerrainHeights[Width, 0]      = 0.5f;
-        TerrainHeights[0, Height]     = 0.5f;
+        TerrainHeights[0, 0] = 0.5f;
+        TerrainHeights[Width, 0] = 0.5f;
+        TerrainHeights[0, Height] = 0.5f;
         TerrainHeights[Width, Height] = 0.5f;
-        
+
 
         //TerrainHeights[(int)(Width * 0.75f), (int)(Height * 0.25f)] = 1;
         //TerrainHeights[(int)(Width * 0.75f), (int)(Height * 0.75f)] = 1;
@@ -43,7 +44,7 @@ public partial class TerrainViewModel : TerrainViewModelBase {
         {
             mountainRangeX = UnityEngine.Random.Range(0, Width);
             mountainRangeY = UnityEngine.Random.Range(0, Height);
-            for (int a=0; a < MountainRangeScale; a++)
+            for (int a = 0; a < MountainRangeScale; a++)
             {
                 TerrainHeights[mountainRangeX, mountainRangeY] = 1;
                 mountainRangeX = Mathf.Clamp(mountainRangeX + UnityEngine.Random.Range(-MountainSpacing, MountainSpacing), 0, Width);
@@ -77,7 +78,7 @@ public partial class TerrainViewModel : TerrainViewModelBase {
 
             // Simulate water movement
             for (int a = 0; a < RainfallMovementSteps; a++)
-			{
+            {
 
                 // Rainfall
                 for (int y = 0; y < Height; y++)
@@ -94,7 +95,7 @@ public partial class TerrainViewModel : TerrainViewModelBase {
 
                         // Subtract height before moving
                         if (Rainfall[x, y] <= 0)
-                            continue;                  
+                            continue;
 
                         if (a != 0)
                         {
@@ -150,7 +151,7 @@ public partial class TerrainViewModel : TerrainViewModelBase {
             }
         }
     }
-    
+
 
     public void AddWaterPools()
     {
@@ -165,7 +166,7 @@ public partial class TerrainViewModel : TerrainViewModelBase {
                 {
                     WaterHexes.Add(Hexes[x, y]);
                 }
-            }   
+            }
         }
         GenerateOcean(WaterHexes.ToList());
 
@@ -255,12 +256,12 @@ public partial class TerrainViewModel : TerrainViewModelBase {
         int randY;
         int riverCount = 0;
 
-        
+
         int mainRivers = 3;
         int smallerRivers = 5;
         RiverHexes = new ModelCollection<Hex>();
 
-        while(riverCount < mainRivers)
+        while (riverCount < mainRivers)
         {
             randX = UnityEngine.Random.Range(0, Width);
             randY = UnityEngine.Random.Range(0, Height);
@@ -285,9 +286,6 @@ public partial class TerrainViewModel : TerrainViewModelBase {
                 riverCount++;
             }
         }
-
-
-        Debug.Log("Revers" + riverCount);
     }
 
     public void GenerateRiver(Hex fromHex, Hex toHex)
@@ -424,7 +422,7 @@ public partial class TerrainViewModel : TerrainViewModelBase {
         int randX = 0;
         int randY = 0;
 
-        while(count < RiverFrequency)
+        while (count < RiverFrequency)
         {
             randX = UnityEngine.Random.Range(0, Width);
             randY = UnityEngine.Random.Range(0, Height);
@@ -509,7 +507,7 @@ public partial class TerrainViewModel : TerrainViewModelBase {
 
         Chunks = new ChunkViewModel[chunkCountX, chunkCountY];
 
-        for (int x = 0;  x < chunkCountX; x++)
+        for (int x = 0; x < chunkCountX; x++)
         {
             for (int y = 0; y < chunkCountY; y++)
             {
@@ -526,14 +524,14 @@ public partial class TerrainViewModel : TerrainViewModelBase {
 
     public Vector3 ChunkWorldPos(int XIndex, int YIndex)
     {
-        return( new Vector3(XIndex * (ChunkSize / PixelsPerUnit),
+        return (new Vector3(XIndex * (ChunkSize / PixelsPerUnit),
                             0,
                             YIndex * (ChunkSize / PixelsPerUnit)));
     }
 
     public Vector3 ChunkCenterWorldPos(int XIndex, int YIndex)
     {
-        return( new Vector3(XIndex * (ChunkSize / PixelsPerUnit) + (ChunkSize / PixelsPerUnit) / 2, 
+        return (new Vector3(XIndex * (ChunkSize / PixelsPerUnit) + (ChunkSize / PixelsPerUnit) / 2,
                             0,
                             YIndex * (ChunkSize / PixelsPerUnit) + (ChunkSize / PixelsPerUnit) / 2));
     }

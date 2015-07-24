@@ -57,7 +57,7 @@ public class GameTimeController : GameTimeControllerBase {
             GameTime.Month += 1;
         }
 
-        if (GameTime.Month > 12)
+        if (GameTime.Month > 11)
         {
             GameTime.Month = 1;
             GameTime.Year += 1;

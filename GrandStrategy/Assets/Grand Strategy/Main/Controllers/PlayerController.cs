@@ -14,5 +14,11 @@ public class PlayerController : PlayerControllerBase {
     public override void InitializePlayer(PlayerViewModel viewModel) {
         base.InitializePlayer(viewModel);
         // This is called when a PlayerViewModel is created
+
     }
+    public override void SetMousePosHoverHex(PlayerViewModel player, UnityEngine.Vector3 pos)
+    {
+        player.HoverHex = Terrain.GetHexAtPos(pos);
+    }
+
 }

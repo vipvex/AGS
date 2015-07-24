@@ -187,9 +187,6 @@ public class ChunkManagerView : ChunkManagerViewBase {
 
     #endregion
 
-    Thread threadLOD;
-
-
     protected override IEnumerator Start()
     {
  	 
@@ -700,7 +697,7 @@ public class ChunkManagerView : ChunkManagerViewBase {
         vertices = new Vector3[(ChunkCollisionResolution + 1) * (ChunkCollisionResolution + 1)];
 
         // Pixels per vetex point
-        //float resStep = ChunkWidth / ChunkCollisionResolution;
+        // float resStep = ChunkWidth / ChunkCollisionResolution;
         float resStep = (float)ChunkSize / (float)ChunkCollisionResolution;
         float heightmapStep = (float)Chunks[ChunkX, ChunkY].Heights.GetLength(0) / (float)ChunkCollisionResolution;
 

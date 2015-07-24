@@ -1,9 +1,11 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class MenuNetworkManager : MonoBehaviour {
+public class MenuNetworkManager : MonoBehaviour
+{
 
+    public string GameRoom = "";
     private const string roomName = "RoomName";
     private RoomInfo[] roomInfoList;
 
@@ -35,7 +37,7 @@ public class MenuNetworkManager : MonoBehaviour {
         roomBrowserWindow.SetActive(true);
         roomInfoWindow.SetActive(false);
     }
- 
+
     public void RefreshGameList()
     {
         roomInfoList = PhotonNetwork.GetRoomList();
@@ -122,10 +124,10 @@ public class MenuNetworkManager : MonoBehaviour {
         roomInfoWindow.SetActive(false);
     }
 
-    [RPC]
+    [PunRPC]
     public void StartGame()
     {
-        PhotonNetwork.LoadLevel("Main");
+        PhotonNetwork.LoadLevel(GameRoom);
     }
 
     private void InitilizeRoomList()

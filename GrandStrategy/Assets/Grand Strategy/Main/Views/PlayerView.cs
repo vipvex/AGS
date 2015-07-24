@@ -46,13 +46,12 @@ public class PlayerView : PlayerViewBase {
 
         if (Physics.Raycast(ray, out hit, 500))
         {
-
             selectedObj = hit.collider.gameObject;
 
             // Hovering over gameplay objects
             if (selectedObj.CompareTag("terrain"))
             {
-                Player.SelectedHex = Player.Terrain.GetHexAtPos(hit.point);
+                ExecuteSetMousePosHoverHex(hit.point);
             }
         }
     }

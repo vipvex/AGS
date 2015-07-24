@@ -19,8 +19,6 @@ public class GameLogicController : GameLogicControllerBase {
     public override void StartGame(GameLogicViewModel viewModel) {
         base.StartGame(viewModel);
 
-        UnityEngine.Debug.Log("started game");
-
         Terrain.GenerateTerrain.OnNext(new GenerateTerrainCommand());   
     }
 }
